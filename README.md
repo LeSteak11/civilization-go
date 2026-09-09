@@ -2,10 +2,9 @@
 
 "Civilization Go" — a 24-turn, roughly three-minute asynchronous mobile strategy match.
 
-This repository is at **M2: content integration**. A complete 24-turn match resolves
-deterministically with no engine, no UI and no I/O in the authoritative path, and the
-authored content pool is strictly loaded, validated, proved executable and canonically
-hashed. There is no playable game yet — M3 adds Snapshot and replay, M4 the first UI.
+This repository is at **M4: first playable portrait UI**. A complete 24-turn match resolves
+deterministically through the existing engine-free Core/Application path, with Snapshot,
+replay, same-seed restart, checkpoint/resume, and a playable Unity portrait presentation.
 
 ## Authority order
 
@@ -38,7 +37,18 @@ test enforces that by reading the compiled assembly's metadata.
 
 ## Requirements
 
-.NET SDK 8.0. Nothing else — the solution takes no NuGet package.
+- .NET SDK 8.0 for the full automated suite. The solution takes no NuGet package.
+- Unity `6000.3.23f1` for the playable presentation.
+
+## Play in Unity
+
+1. In Unity Hub, add this repository folder as a project and open it with `6000.3.23f1`.
+2. Open `Assets/Epoch/Scenes/PrototypeMatch.unity`.
+3. Set the Game view to portrait (the UI targets `390×844`) and press Play.
+4. Tap a legal card. BUILD and TRAIN then ask for a highlighted lane; ADVANCE resolves immediately.
+5. Use `FAST ×1` to toggle 4× presentation speed or `SKIP` during resolution. Finish turn 24 to reach the result, Replay, and same-seed Restart controls.
+
+PASS is automatic only when no offered card is legal; there is intentionally no PASS button.
 
 ## Running the tests
 
@@ -114,3 +124,15 @@ dotnet run --project tests/Epoch.Application.Tests -- --emit-goldens
 
 Never do this to make a failing test pass. A change to `fixtures/golden/` means a rules or
 content change and needs saying so out loud — the same rule the oracle fixtures carry.
+
+## What M3 and M4 add
+
+- M3: version-guarded Snapshot opponents, canonical replay verification, same-seed restart,
+  and command-prefix checkpoint/resume.
+- M4: a turn-at-a-time `PlayableMatchSession` that submits selections to Core, exposes only
+  disposable card/state/event projections, and keeps animation skipping outside authoritative state.
+- The Unity scene presents the three five-tile lanes, resources, scores, offers and legality,
+  lane targeting/cancellation, unit class/HP/REACH, structures, combat feedback, Age transitions,
+  forced PASS, result/replay/restart, and 1×/4×/skip presentation controls.
+- Unity consumes the built `netstandard2.1` Core/Content/Application assemblies. It does not
+  copy or reimplement gameplay rules in `MonoBehaviour` code.

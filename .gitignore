@@ -22,6 +22,9 @@ TestResults/
 *.aab
 *.app
 *.ipa
+# Unity briefly imported src/ while the M4 integration route was being configured.
+# Source lives outside Assets and its generated metadata is never part of the project.
+/src/**/*.meta
 
 # ---- Local ----
 .DS_Store

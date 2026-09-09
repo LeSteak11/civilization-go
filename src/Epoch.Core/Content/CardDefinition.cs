@@ -38,7 +38,9 @@ namespace Epoch.Core.Content
         bool GrantsReach,
         PerkArchetype? Archetype,
         IReadOnlyList<ActiveEffect> Effects,
-        string DisplayName)
+        string DisplayName,
+        string ShortEffectLine,
+        string RulesText)
     {
         /// <summary>Offer eligibility for an Age (Core Spec sec.6.0).</summary>
         public bool IsEligibleInAge(int age) => age >= MinAge && age <= MaxAge;

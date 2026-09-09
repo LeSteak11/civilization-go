@@ -163,7 +163,9 @@ namespace Epoch.Content.Loading
                 grantsReach,
                 archetype,
                 effects,
-                entry.Member("displayName").AsString());
+                entry.Member("displayName").AsString(),
+                entry.Member("shortEffectLine").AsString(),
+                entry.Member("rulesText").AsString());
         }
 
         private static ActiveEffect ReadEffect(JsonValue effect, string owningEntryId)

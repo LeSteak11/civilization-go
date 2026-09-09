@@ -1,0 +1,12 @@
+{
+  "name": "Epoch.Presentation",
+  "rootNamespace": "Epoch.Presentation",
+  "references": ["Unity.UGUI"],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Epoch.Core.dll",
+    "Epoch.Content.dll",
+    "Epoch.Application.dll"
+  ],
+  "autoReferenced": true
+}

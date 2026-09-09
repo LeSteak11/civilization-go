@@ -1,0 +1,7 @@
+{
+  "name": "Epoch.Editor",
+  "rootNamespace": "Epoch.Editor",
+  "references": ["Epoch.Presentation"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}

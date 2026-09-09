@@ -10,7 +10,7 @@ that will be blocked by it is named.
 
 | # | Decision | Status | Value | Rationale / cost of changing later |
 |---|---|---|---|---|
-| 1 | Unity LTS version and licensing | **OPEN** — blocks M4 | — | Not needed for M0–M3, which are pure C#. Pin before any scene work. |
+| 1 | Unity LTS version and licensing | **OWNER-RESOLVED** | Unity `6000.3.23f1`; existing local license | Owner explicitly pinned this editor for M4. `ProjectVersion.txt` records the exact version and revision. |
 | 2 | Android/iOS floors and CI devices | **OPEN** — blocks M4/M6 | — | Affects nothing before a device build exists. |
 | 3 | Canonical state serialization + hash | **DEFAULTED** | Canonical UTF-8 JSON + SHA-256 | The plan's own recommendation. Inspectable by a designer reading a replay; changing it later invalidates stored fixture hashes only, not code. |
 | 4 | Fixed-point Power unit | **DEFAULTED** | Integer hundredths (`FixedValue.Hundredths`) | Core Spec sec.10.4 option (a), the safer of the two. Removes float from the authoritative path entirely; the architecture guard ARCH-03 enforces it. |
@@ -118,3 +118,12 @@ coverage and should be added before or alongside M3:
   the dominant class at C3;
 - behavioural tests for the five effects repaired above.
 
+## Decisions made during M4
+
+| # | Decision | Value | Rationale |
+|---|---|---|---|
+| W | Unity consumes prebuilt simulation assemblies | `Assets/Plugins/Epoch/*.dll`, built from the existing `netstandard2.1` projects | Unity 6000.3's source compiler is C# 9 while the authoritative Core uses C# 10 record structs. Referencing the already-intended netstandard assemblies preserves one gameplay implementation and avoids rewriting domain types for Unity. |
+| X | Presentation scene is constructed procedurally | One empty `PrototypeMatch.unity` scene plus `EpochMatchController` | Keeps serialized UI state minimal and reviewable. The controller owns only Unity view/input/animation state; every gameplay value comes from `PlayableMatchSession` and Core events. |
+| Y | Mid-animation resume behavior | Render the already-resolved post-turn state | Matches Technical Plan sec.8 and decision 7: resolution precedes animation, so closing/skipping presentation cannot change or partially apply gameplay. |
+
+The mobile OS floors in decision 2 remain genuinely open and no Android/iOS build was produced in M4. The owner-scoped M4 deliverable is the playable Unity Editor experience; physical-device certification remains blocked until those target floors/devices are selected.

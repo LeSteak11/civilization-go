@@ -8,5 +8,10 @@ namespace Epoch.Application.Runs
     /// </summary>
     public interface RunCoordinator
     {
+        Core.Domain.RunState State { get; }
+
+        Core.Domain.CardOfferSet Offers { get; }
+
+        PresentationTurn Submit(Core.Domain.Selection selection);
     }
 }
