@@ -1,4 +1,5 @@
 using Epoch.Core.Domain;
+using Epoch.Core.Numerics;
 
 namespace Epoch.Core.Effects
 {
@@ -35,18 +36,4 @@ namespace Epoch.Core.Effects
 
     /// <summary>The set of effects in force for a side this turn. Assembled in M1/M2.</summary>
     public sealed record EffectContext(Side Owner, int Turn);
-
-    /// <summary>
-    /// Fixed-point value in hundredths. Power, magnitudes and multipliers are held as
-    /// integers so that no float ever reaches the authoritative path
-    /// (Core Spec sec.10.4, residual float risk, option (a)). Arithmetic lands in M1.
-    /// </summary>
-    public readonly record struct FixedValue(int Hundredths)
-    {
-        public const int Scale = 100;
-
-        public static FixedValue FromInt(int whole) => new FixedValue(whole * Scale);
-
-        public static FixedValue Zero => new FixedValue(0);
-    }
 }

@@ -5,4 +5,8 @@
     <AssemblyName>Epoch.Testing</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Epoch.Core\Epoch.Core.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -6,6 +6,7 @@ $suites = @(
   "Epoch.Architecture.Tests",
   "Epoch.Core.Tests",
   "Epoch.Content.Tests",
+  "Epoch.Application.Tests",
   "Epoch.Oracle.Tests"
 )
 

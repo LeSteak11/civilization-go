@@ -12,10 +12,17 @@ namespace Epoch.Core.Events
         IReadOnlyList<SimulationEvent> Events,
         CanonicalTurnRecord CommandRecord);
 
-    /// <summary>The canonically serialized commands for one turn, plus the post-turn state hash.</summary>
+    /// <summary>
+    /// The canonically serialized commands for one turn, plus the canonical post-turn
+    /// state text.
+    ///
+    /// It carries the **bytes**, not a digest. Hashing lives in Application: System.Security
+    /// is a forbidden namespace in the Core (Technical Plan sec.3.1), so a Core type that
+    /// claimed to hold a hash would be a type the Core could never populate.
+    /// </summary>
     public sealed record CanonicalTurnRecord(
         int Turn,
-        Commands.CardSelectionCommand Player,
-        Commands.CardSelectionCommand Snapshot,
-        string StateHash);
+        Domain.Selection Player,
+        Domain.Selection Snapshot,
+        string CanonicalState);
 }

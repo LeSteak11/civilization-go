@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>Epoch.Application.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Epoch.Testing\Epoch.Testing.csproj" />
+    <ProjectReference Include="..\..\src\Epoch.Core\Epoch.Core.csproj" />
+    <ProjectReference Include="..\..\src\Epoch.Application\Epoch.Application.csproj" />
+  </ItemGroup>
+
+</Project>

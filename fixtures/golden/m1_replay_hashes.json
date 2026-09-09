@@ -1,0 +1,22 @@
+{
+  "$schema": "epoch.fixture.golden-replays/1",
+  "rulesVersion": "1.2.0-v1-final",
+  "contentVersion": "1.0.1-v1",
+  "contentHash": "sha256:pending-m2",
+  "selectionPolicy": "PLAYER=FirstLegalSelectionSource, SNAPSHOT=LastLegalSelectionSource",
+  "note": "Complete-run goldens for M1. The two sides use deliberately different legal-choice policies so that scoring, ownership and contested income are actually exercised; neither reads future offers or consumes RNG, so a run is a pure function of seed and content. Never regenerate these to make a failing test pass: a change here means a rules or content change, and needs saying so. M2 replaces the placeholder contentHash with the real canonical hash, which will change every value below exactly once, for a documented reason.",
+  "runs": [
+    { "seed": "0", "replayHash": "39c0b4568525abbd1984021e12e3fc316546156caa936c4f229a2387dc103301", "finalStateHash": "db7b27dc563d597c3660fc057c2213d4e3755ece6bf154e59052412635d2c149", "playerScore": 7, "snapshotScore": 4, "outcome": "VICTORY", "eventCount": 321, "laneModifiers": "COAST-RIVER-HIGHLAND" },
+    { "seed": "1", "replayHash": "ca4f8645825d3ec262d08f545692bfae80c19b4d2ddf64435ffbfd3b440e86e9", "finalStateHash": "97f93d301adb266961817bacfe9ea77c5688a5380567897c12acedd43d71ae06", "playerScore": 17, "snapshotScore": 4, "outcome": "VICTORY", "eventCount": 352, "laneModifiers": "RIVER-COAST-HIGHLAND" },
+    { "seed": "2", "replayHash": "3d69a227b7d3f93b7a67033984255dbbe447e4a912f84683903555860cfa0d5b", "finalStateHash": "07d6cf58a908441148476e59647a90ed0ab5e7455676d3b40eb0faa541253c54", "playerScore": 5, "snapshotScore": 7, "outcome": "DEFEAT", "eventCount": 340, "laneModifiers": "COAST-RIVER-HIGHLAND" },
+    { "seed": "3", "replayHash": "a137ecf804f215edf165a2a88667a1445f5bde8c8d58aa4f7a767f2604818d95", "finalStateHash": "230a6dcefd7cd0094271069b6946fd8029153e9a4b33e6d43223e85f0a888563", "playerScore": 8, "snapshotScore": 3, "outcome": "VICTORY", "eventCount": 328, "laneModifiers": "HIGHLAND-COAST-RIVER" },
+    { "seed": "4", "replayHash": "8bf3da614711f83be218a3ccd6a754e2468c6b9ad3efa25fe4ce13300fed7f43", "finalStateHash": "c7348f1db07a748a235c203fefa82fe87bdd18b22c74b9d0280bc7b7b2db4030", "playerScore": 5, "snapshotScore": 7, "outcome": "DEFEAT", "eventCount": 335, "laneModifiers": "RIVER-HIGHLAND-COAST" },
+    { "seed": "5", "replayHash": "1688a4e3990a60ef74cb5ef2ad32ed2a17afe72cf180d3f7e7b9841f7fea86e1", "finalStateHash": "fe5e23681057632fb467772388628cc9371eda52722e5f7b50c06f27e77f783e", "playerScore": 8, "snapshotScore": 3, "outcome": "VICTORY", "eventCount": 319, "laneModifiers": "RIVER-HIGHLAND-COAST" },
+    { "seed": "6", "replayHash": "c3f1fb8a143c6291530d234d1f2807793647922d10d8bdff599d481b139032b4", "finalStateHash": "4bc9ea7bddd90dfd50740d3465bef3b410118e4c7d8a37c9ce36b295ac7cd00f", "playerScore": 6, "snapshotScore": 3, "outcome": "VICTORY", "eventCount": 312, "laneModifiers": "HIGHLAND-RIVER-COAST" },
+    { "seed": "7", "replayHash": "074ba9c35a11b54aaf3e5456358b50c51566538baff6332dcacd01cde7965db4", "finalStateHash": "5c4edec0e7a0d83103101b26a26270c0b109f2c0f7ec6c02f8649222c23a668a", "playerScore": 4, "snapshotScore": 7, "outcome": "DEFEAT", "eventCount": 324, "laneModifiers": "RIVER-HIGHLAND-COAST" },
+    { "seed": "8", "replayHash": "101312640b48b9b6abd5bc7c9f6cfa5933f3afe64a3b2334fbb0dd714837529e", "finalStateHash": "294cfc6c0df3f4a6a9a31b8e776457137f709528752bb1b38df20aebed6ed27b", "playerScore": 3, "snapshotScore": 16, "outcome": "DEFEAT", "eventCount": 324, "laneModifiers": "RIVER-COAST-HIGHLAND" },
+    { "seed": "9", "replayHash": "986431033c3fb5f24da4515d4eb1df54554031a916337b231dab5efa81ab9e44", "finalStateHash": "5069bdd4048788218165599f618d42a6c7ed3b562314de86426e19660e9d4636", "playerScore": 3, "snapshotScore": 15, "outcome": "DEFEAT", "eventCount": 294, "laneModifiers": "RIVER-COAST-HIGHLAND" },
+    { "seed": "A", "replayHash": "06eaec21a8ce096a918447ca137e45002fe49a359d4594f7e5df3866d7c51a84", "finalStateHash": "594a5929678e31ae78bb9d5b6c5503af72908f6857c60427a0512ad6db0272bc", "playerScore": 5, "snapshotScore": 7, "outcome": "DEFEAT", "eventCount": 338, "laneModifiers": "HIGHLAND-COAST-RIVER" },
+    { "seed": "B", "replayHash": "ba512c847f65d03261e835eac70178fa894539fac3c85752dc0849bc1b053974", "finalStateHash": "2fc18bcdbcf6fd2acf1b36329e251f0a0e59b4f745ad1fe625e7151790d47ede", "playerScore": 6, "snapshotScore": 4, "outcome": "VICTORY", "eventCount": 309, "laneModifiers": "HIGHLAND-RIVER-COAST" }
+  ]
+}

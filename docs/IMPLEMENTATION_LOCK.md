@@ -31,3 +31,29 @@ that will be blocked by it is named.
 | D | Interface names follow the plan verbatim | `TurnResolver`, not `ITurnResolver` | The Technical Plan sec.6 snippets omit the `I` prefix. Matching them exactly keeps code and authority document greppable against each other. This departs from normal C# convention; say the word and it changes in one pass. |
 | E | Empty suites fail | `TestRunner` returns 1 on zero discovered cases | A suite that is wired but empty must never report green. The plan calls out "no unconditional placeholder assertion" as a repaired defect in the Node simulator; this is the same failure mode. |
 | F | `Assert.PendingMilestone` fails loudly | — | Same reasoning as (E). A test for unbuilt behaviour is a failing test, not a skipped one. |
+
+## Decisions made during M1
+
+No rule, Age table, content effect or balance value is changed by any of these. Each is
+an engineering choice the Technical Plan left to implementation.
+
+| # | Decision | Value | Rationale |
+|---|---|---|---|
+| G | Content definition types live in `Epoch.Core`, not `Epoch.Content` | `Epoch.Core.Content.CardDefinition` / `ValidatedContentSet` | The plan's sec.5 tree puts `CardDefinition.cs` under `Epoch.Content`, but the Core must read card definitions and "Core references none of them" (sec.3.1). Putting the immutable value types in Core and leaving loading, strict validation and hashing in `Epoch.Content` satisfies both, and matches sec.3.1's own wording: "Content definitions cross into Core only as validated immutable values." |
+| H | Canonical state serialization is in Core; hashing is in Application | `Core.Serialization.CanonicalState` produces text, `Application.Runs.StateHasher` digests it | `System.Security` is on the Core's forbidden-namespace list, so a Core type that held a hash would be one the Core could never populate. `CanonicalTurnRecord` therefore carries canonical bytes rather than a digest. |
+| I | Card pool ordering is the content file's declaration order | builds, then trains, then perks, then keystones | Offer generation selects by index into the eligible subset, so declaration order is part of the deterministic contract. Reordering the manifest changes every offer sequence and requires a `contentVersion` change. Matches the pinned oracle's `allCards` construction. |
+| J | The weighted type draw is `NextBounded(100)` with cumulative BUILD, TRAIN, ADVANCE | — | Core Spec sec.6.0 fixes the weights and the indexed address but not the draw mechanism, which nonetheless changes output. The pinned oracle (`simulate.js:85`) uses exactly this, so production and oracle agree by construction rather than by luck. |
+| K | Systems are static, not injected services | `OfferGeneration`, `IncomeSystem`, `MovementSystem`, `CombatSystem`, `ScoringSystem`, ... | Each is a pure function of authoritative state; an instance would carry no field except one a determinism bug could hide in. `DeterministicRng` stays an interface because "no native RNG" [Lock 19] is a rule about a capability. The plan's sec.6 interface names are kept on the concrete entry points. |
+| L | Per-unit `effectivePower` effects apply before stacking | — | Content authors `UNIT_CLASS`-scoped `ON_COMBAT_PRE` effects. C3 picks the dominant class from post-stacking, pre-counter Power, so a class-scoped bonus can only be meaningful if it lands before that. **Worth an owner confirmation at M2**, when effect coverage is proved exhaustively; no M1 acceptance test depends on it. |
+| M | M1 loads content through a test-only fixture loader | `tests/Epoch.Testing/ContentFixtureLoader.cs` | M1 needs the real 48-entry pool to run matches; M2 owns strict deserialization, exhaustive validation, effect-coverage proof and the canonical content hash. The loader deliberately does not validate - rejecting malformed content is M2's job, and pretending otherwise here would hide that work. `ContentHash` is the placeholder `sha256:pending-m2`. |
+| N | Complete-run goldens use two different legal-choice policies | PLAYER first-legal, SNAPSHOT last-legal | Two identical policies mirror exactly: both sides reach tile 3 on the same turn with equal Power, every contested tile is disputed, and every match ends 0-0. That is correct for identical play but would leave the goldens silent about scoring, ownership persistence and contested income. GT-15c asserts the fixture contains scoring runs so it can never go quietly vacuous. |
+
+### Specification discrepancy found during M1 (needs an owner ruling)
+
+**Core Spec sec.10.2, vector `OFF-19`.** The row is labelled "master `1`", but its expected
+address seeds derive from the card stream `910A2DEC89025CC1`, which the `STR-00` row gives
+for master **`0`**. The two rows cross-check each other and the label is the outlier; the
+implementation reproduces all three addresses and all three `OFF-19-OUT` outputs from
+master `0`. Taken as a typo in the label, with the numbers treated as normative. The
+algorithm is unambiguous either way, so nothing is blocked - but the document should be
+corrected so a future implementer does not re-derive this.
