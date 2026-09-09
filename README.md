@@ -1,21 +1,29 @@
 # EPOCH
 
-"Civilization Go" — a 24-turn, roughly three-minute asynchronous mobile strategy match.
+"Civilization Go" — persistent capital building powered by repeatable 24-turn,
+roughly three-minute asynchronous strategy battles.
 
-This repository is at **M4: first playable portrait UI**. A complete 24-turn match resolves
+This repository has completed **M4: first playable battle prototype** and is preparing the
+outer progression foundation for UI implementation. A complete 24-turn match resolves
 deterministically through the existing engine-free Core/Application path, with Snapshot,
 replay, same-seed restart, checkpoint/resume, and a playable Unity portrait presentation.
 
-## Authority order
+The product loop is **Capital → Battle → Rewards → Landmark upgrades → Capital completion
+→ Next capital**. See `_aiinfodocs/EPOCH_PRODUCT_DIRECTION.md` for the authoritative board
+vocabulary and product boundary.
 
-Read in this order; earlier wins:
+## Authority by subject
 
-1. `_aiinfodocs/EPOCH_Core_Gameplay_Spec_v1.md` — authoritative V1 simulation behaviour (rules `1.2.0-v1-final`)
-2. `_aiinfodocs/data/epoch_v1_content.json` — authoritative prototype content (`1.0.1-v1`)
-3. `_aiinfodocs/EPOCH_V1_Content_Manifest.md` — human-readable content rationale
-4. `_aiinfodocs/EPOCH_V1_Balance_Report.md` — **observational evidence only**
-5. `_aiinfodocs/EPOCH-master-reference.md` — authority where the Core Spec does not supersede it
-6. `_aiinfodocs/hooked-player-playbook.md` — supporting research only
+Authority is subject-specific. Use the first applicable source for the subject in question:
+
+1. `_aiinfodocs/EPOCH_PRODUCT_DIRECTION.md` — authoritative outer product loop, board vocabulary, and progression/battle boundary
+2. `_aiinfodocs/EPOCH_CAPITAL_PROGRESSION_CONTRACT.md` — authoritative persistent Gold, rewards, landmarks, capital completion, world unlocking, and progression fairness
+3. `_aiinfodocs/EPOCH_Core_Gameplay_Spec_v1.md` — authoritative V1 battle simulation behaviour (rules `1.2.0-v1-final`)
+4. `_aiinfodocs/data/epoch_v1_content.json` — authoritative prototype battle content (`1.0.1-v1`)
+5. `_aiinfodocs/EPOCH_V1_Content_Manifest.md` — human-readable content rationale
+6. `_aiinfodocs/EPOCH_V1_Balance_Report.md` — **observational evidence only**
+7. `_aiinfodocs/EPOCH-master-reference.md` — legacy design authority only where the subject-specific sources above are silent
+8. `_aiinfodocs/hooked-player-playbook.md` — supporting research only
 
 The Node simulator under `_aiinfodocs/simulation` is a **reference oracle**, never runtime
 code. Where oracle and specification disagree, the specification wins.

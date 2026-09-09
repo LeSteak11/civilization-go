@@ -2,10 +2,10 @@
 
 **What this is:** the complete design specification for EPOCH, a mobile-native 4X strategy game derived from Civilization VI's shipped numerical data and compressed into a 3-minute asynchronous PvP run.
 
-**Status:** v2, 8 September 2026. Consolidates the v1 design pass (core loop, systems) and the v2 pass (monetization, commerce, virality, UI).
+**Status:** Legacy v2 design reference, 8 September 2026. Consolidates the v1 design pass (core loop, systems) and the v2 pass (monetization, commerce, virality, UI). For current authority by subject, use the repository `README.md`; `EPOCH_PRODUCT_DIRECTION.md` supersedes this document for the outer product loop and board vocabulary.
 
 **How to use this document (instructions for an AI assistant reading it):**
-- This is the single source of truth for EPOCH. Prefer it over your own assumptions about mobile game design.
+- This is a legacy source of design rationale. Apply it only where the subject-specific authoritative documents listed in the repository `README.md` are silent.
 - Every section has a stable ID (`§0.1`, `§4.4`, etc.). Cite them when answering.
 - `§CONST` below is a machine-readable block of every derived constant. Read it first.
 - Numbers marked **DERIVED** come from parsing Civ VI's shipped XML. Numbers marked **CHOSEN** are design decisions with stated rationale. Numbers marked **BENCHMARK** are industry estimates, not measurements. Do not treat benchmarks as facts about EPOCH.

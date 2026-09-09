@@ -1,0 +1,14 @@
+Assets/
+└── EPOCH_Visuals/
+    ├── Board/
+    ├── Objectives/
+    ├── Units/
+    ├── Structures/
+    ├── Cards/
+    ├── Resources/
+    ├── CombatFX/
+    ├── MovementFX/
+    ├── AgeProgression/
+    ├── HUD/
+    ├── Results/
+    └── GlobalPolish/

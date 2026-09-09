@@ -3,7 +3,7 @@
 **Document purpose:** final pre-development map for an intentionally ugly, fully playable mobile-first vertical slice  
 **Rules authority:** `EPOCH_Core_Gameplay_Spec_v1.md`, rules `1.2.0-v1-final`  
 **Content authority:** `data/epoch_v1_content.json`, content `1.0.1-v1`  
-**Status:** ready for implementation after the owner decisions in §17.5; no production code is created by this document
+**Status:** Historical plan for the M0–M4 battle vertical slice. For current product direction and board vocabulary, use `EPOCH_PRODUCT_DIRECTION.md`.
 
 ---
 
@@ -17,7 +17,7 @@ EPOCH is “Civilization Go”: Civilization-inspired Ages, economy, military co
 
 The first playable is one complete 24-turn match between PLAYER and a local deterministic Snapshot or bot. It includes three shared offers per turn; BUILD, TRAIN, ADVANCE, KEYSTONE, and forced PASS; Growth and Insight; four Ages; three five-tile lanes; RIVER, HIGHLAND, and COAST; movement; combat on every co-occupied tile; the counter triangle; soft stacking; REACH; contested ownership and scoring; a turn-24 result; seeded replay; same-seed restart; JSON content loading; and human-readable debug state.
 
-The slice explicitly excludes final artwork, polished UI, final animation/audio, monetization, gacha, stores, LiveOps, accounts, social-video export, production backend infrastructure, and meta-game implementation. No excluded system may become a dependency of a playable match.
+The M0–M4 battle slice explicitly excluded final artwork, polished UI, final animation/audio, monetization, gacha, stores, LiveOps, accounts, social-video export, production backend infrastructure, and meta-game implementation. That historical scope statement does not exclude the persistent capital progression now defined in `EPOCH_PRODUCT_DIRECTION.md`; it remains true that no outer-loop system may become a dependency of the authoritative battle simulation.
 
 ### 1.1 Authority and change control
 
