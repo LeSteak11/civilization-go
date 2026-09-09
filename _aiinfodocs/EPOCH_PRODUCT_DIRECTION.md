@@ -25,6 +25,8 @@ Every battle remains the existing deterministic 24-turn activity and does not be
 
 Detailed reward, landmark, unlock, and save rules are defined in the authoritative `EPOCH_CAPITAL_PROGRESSION_CONTRACT.md`.
 
+That contract currently locks capital structure at **five landmarks x five sequential stages** (twenty-five upgrades to complete a capital), battle Gold at **300 / 250 / 200** for victory / tie / defeat (`INITIAL-TUNING`), and treats **Restart Same Seed** from the result flow as a **practice run that awards no persistent Gold**. Final economy amounts may still be retuned; reward eligibility is decided.
+
 ## Day 2 boundary
 
 Day 2 covers the product and progression contracts, screen responsibilities, responsive-layout targets, minimum non-visual progression support, and visual-production sequencing needed before UI implementation.
