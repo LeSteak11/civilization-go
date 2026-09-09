@@ -186,11 +186,23 @@ namespace Epoch.Core.Systems
                 }
             }
 
-            // M22 [Final Lock 1]: the stack ranking is over every participating unit,
-            // descending pre-stacking Power, then earliest trainedOnTurn, then instanceId.
             List<UnitInstance> ranked = new List<UnitInstance>(frontline);
             ranked.AddRange(reach);
-            ranked.Sort(CompareStackOrder);
+
+            // Per-unit Power effects are applied FIRST, then the stack is ranked on the
+            // result. M22's "descending effective pre-stacking Power" means Power before
+            // the stack multipliers, which is the modified value - and the owner-confirmed
+            // decision (L) says these effects "may therefore change stack rank and the
+            // dominant class selected at C3". Ranking on raw basePower would honour the
+            // second half of that ruling and quietly drop the first.
+            Dictionary<string, FixedValue> prestack = new Dictionary<string, FixedValue>(StringComparer.Ordinal);
+            for (int i = 0; i < ranked.Count; i++)
+            {
+                prestack[ranked[i].InstanceId.Value] = UnitPowerWithEffects(player, ranked[i]);
+            }
+
+            Comparison<UnitInstance> byPrestackPower = (a, b) => ComparePrestack(a, b, prestack);
+            ranked.Sort(byPrestackPower);
 
             FixedValue total = FixedValue.Zero;
             Dictionary<UnitClass, FixedValue> byClass = new Dictionary<UnitClass, FixedValue>();
@@ -203,7 +215,7 @@ namespace Epoch.Core.Systems
                     ? StackMultipliersHundredths[i]
                     : 0;
 
-                FixedValue basePower = UnitPowerWithEffects(player, unit);
+                FixedValue basePower = prestack[unit.InstanceId.Value];
                 FixedValue effective = basePower.ScaleByHundredths(multiplier);
 
                 total += effective;
@@ -229,9 +241,9 @@ namespace Epoch.Core.Systems
             // (TV-13b: "the front-line tile-3 unit remains first, then the now-eligible
             // tile-2 REACH unit").
             List<UnitInstance> frontlineOrdered = new List<UnitInstance>(frontline);
-            frontlineOrdered.Sort(CompareStackOrder);
+            frontlineOrdered.Sort(byPrestackPower);
             List<UnitInstance> reachOrdered = new List<UnitInstance>(reach);
-            reachOrdered.Sort(CompareStackOrder);
+            reachOrdered.Sort(byPrestackPower);
 
             return new SideCombatants(side, total, dominant, frontlineOrdered, reachOrdered, lane.EngagementId);
         }
@@ -454,9 +466,18 @@ namespace Epoch.Core.Systems
         /// trainedOnTurn, then ascending stable instanceId. Total by construction, so
         /// List.Sort's instability cannot leak into the result.
         /// </summary>
-        internal static int CompareStackOrder(UnitInstance a, UnitInstance b)
+        internal static int CompareStackOrder(UnitInstance a, UnitInstance b) =>
+            CompareRanked(b.BasePower.CompareTo(a.BasePower), a, b);
+
+        private static int ComparePrestack(
+            UnitInstance a,
+            UnitInstance b,
+            Dictionary<string, FixedValue> prestack) =>
+            CompareRanked(
+                prestack[b.InstanceId.Value].CompareTo(prestack[a.InstanceId.Value]), a, b);
+
+        private static int CompareRanked(int byPower, UnitInstance a, UnitInstance b)
         {
-            int byPower = b.BasePower.CompareTo(a.BasePower);
             if (byPower != 0)
             {
                 return byPower;
