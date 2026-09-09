@@ -1,6 +1,7 @@
 # EPOCH Product Direction
 
-**Status:** Authoritative outer-loop direction for Day 2 and later UI work.  
+**Status:** Authoritative outer-loop direction for Day 2 and later UI work.
+
 **Scope of authority:** Product flow, board vocabulary, and the boundary between persistent progression and the existing battle. The Core Gameplay Specification remains authoritative for battle simulation behavior.
 
 ## Player loop
@@ -24,6 +25,8 @@ Any capital marker or capital-end tile shown on the battle board is battle prese
 Every battle remains the existing deterministic 24-turn activity and does not become longer as world progression advances. Persistent progression must remain outside the authoritative battle simulation. Any other relationship between progression and battle is deferred until it is separately specified and approved.
 
 Detailed reward, landmark, unlock, and save rules are defined in the authoritative `EPOCH_CAPITAL_PROGRESSION_CONTRACT.md`.
+
+Screen responsibilities, navigation, and responsive portrait behavior are defined in the authoritative `EPOCH_UI_FLOW_AND_RESPONSIVE_CONTRACT.md`.
 
 That contract currently locks capital structure at **five landmarks x five sequential stages** (twenty-five upgrades to complete a capital), battle Gold at **300 / 250 / 200** for victory / tie / defeat (`INITIAL-TUNING`), and treats **Restart Same Seed** from the result flow as a **practice run that awards no persistent Gold**. Final economy amounts may still be retuned; reward eligibility is decided.
 
