@@ -1,0 +1,29 @@
+<Project>
+
+  <!--
+    Repository-wide build settings.
+    EPOCH V1 - see _aiinfodocs/EPOCH_V1_Technical_Implementation_Plan.md sec.5, sec.11 (M0).
+
+    Simulation assemblies (Epoch.Core / Content / Application / Debug) target
+    netstandard2.1 so that Unity can reference the compiled assemblies directly.
+    Test projects override TargetFramework to net8.0.
+  -->
+
+  <PropertyGroup>
+    <LangVersion>10.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <RulesVersion>1.2.0-v1-final</RulesVersion>
+    <ContentVersion>1.0.1-v1</ContentVersion>
+  </PropertyGroup>
+
+</Project>

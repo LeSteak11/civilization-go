@@ -1,0 +1,12 @@
+<Project>
+
+  <!--
+    netstandard2.1 does not ship System.Runtime.CompilerServices.IsExternalInit, which
+    C# record and init-only members require. The shim is internal to each assembly that
+    needs it, so linking it into every netstandard target is correct and collision-free.
+  -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <Compile Include="$(MSBuildThisFileDirectory)build\IsExternalInit.cs" Link="Properties\IsExternalInit.cs" />
+  </ItemGroup>
+
+</Project>

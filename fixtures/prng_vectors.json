@@ -1,0 +1,28 @@
+{
+  "$schema": "epoch.fixture.prng-vectors/1",
+  "rulesVersion": "1.2.0-v1-final",
+  "description": "Normative PRNG vectors transcribed from Core Spec sec.10.2. These must pass unchanged on every supported platform. They are asserted for the first time at M1, when PCG32 and SplitMix64 are implemented; at M0 only their shape and presence are checked.",
+  "algorithm": "pcg32-xsh-rr-64-32+splitmix64-v13",
+  "splitMix64": [
+    { "id": "SM-00", "inputHex": "0000000000000000", "expectedHex": "E220A8397B1DCDAF" },
+    { "id": "SM-01", "inputHex": "0000000000000001", "expectedHex": "910A2DEC89025CC1" },
+    { "id": "SM-02", "inputHex": "0123456789ABCDEF", "expectedHex": "157A3807A48FAA9D" }
+  ],
+  "pcg32": [
+    { "id": "PCG-00", "initState": 42, "initSeq": 54, "firstOutputs": [2707161783, 2068313097, 3122475824, 2211639955, 3215226955, 3421331566] }
+  ],
+  "streamDerivation": [
+    { "id": "STR-00", "masterHex": "0000000000000000", "cardHex": "910A2DEC89025CC1", "laneHex": "975835DE1C9756CE", "tieHex": "1D0B14E4DB018FED" },
+    { "id": "STR-01", "masterHex": "0123456789ABCDEF", "cardHex": "E821EEBBC0778421", "laneHex": "629DD08FAE280E80", "tieHex": "9B4C210F98EC07FA" }
+  ],
+  "offerAddresses": [
+    {
+      "id": "OFF-19",
+      "masterHex": "0000000000000001",
+      "turn": 19,
+      "redrawAttempt": 0,
+      "addressSeedHexBySlot": ["933FE6C326E506C1", "468BE5E4E85FCD29", "F3385872DB25850C"],
+      "firstOutputBySlot": [4207010209, 4199241477, 3060309534]
+    }
+  ]
+}

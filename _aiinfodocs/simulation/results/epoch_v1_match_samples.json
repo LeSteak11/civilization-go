@@ -1,0 +1,1706 @@
+{
+  "schemaVersion": "1.1.0",
+  "contentVersion": "1.0.1-v1",
+  "previousReportStatus": "INVALID_REPLACED_BY_REPAIRED_RUN",
+  "goldenTests": [
+    {
+      "id": "GT-01",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-02",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-02b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-03",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-04",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-05",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-06",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-07",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-08",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-09",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-10",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-10b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-11",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-11b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-11c",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-12",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-13",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-14",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-14b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-15",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-15b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-16",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-17",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-18",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-18b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-19",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-19b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-20",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-20b",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-20c",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-21",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-22",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-23",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-24",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-25",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-26",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-27",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-28",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-29",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-30",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-MOVE-ENGAGED",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-COMBAT-TILE-2",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-COMBAT-TILE-4",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-SITES",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-SIMULTANEOUS",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-NO-OVERFLOW",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-OFFER-ADDRESS",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-DAMAGE-TABLE",
+      "status": "PASS"
+    },
+    {
+      "id": "GT-PROVENANCE",
+      "status": "PASS"
+    }
+  ],
+  "effectCoverage": {
+    "authoredEffects": 35,
+    "implementedSources": 29,
+    "status": "PASS"
+  },
+  "determinism": {
+    "matchesCompared": 1000,
+    "status": "PASS",
+    "byteEquivalent": true,
+    "rngIsolation": "PASS",
+    "sideSwap": {
+      "comparisons": 150,
+      "status": "PASS"
+    }
+  },
+  "sensitivityComparisons": [
+    {
+      "label": "START_GROWTH_6",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "START_GROWTH_10",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "START_INSIGHT_0",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "START_INSIGHT_4",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "UNIT_HP_75",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "UNIT_HP_125",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "BUILD_CUTOFF_14",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "BUILD_CUTOFF_18",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "LATE_BUILD_COST_75",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "LATE_BUILD_COST_125",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "NO_REACH_PROTECTION",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    },
+    {
+      "label": "NO_DAMAGE_OVERFLOW",
+      "baselineMatches": 1200,
+      "variantMatches": 1200,
+      "policies": [
+        [
+          "RANDOM_LEGAL",
+          "ADAPTIVE"
+        ],
+        [
+          "ECONOMY_FIRST",
+          "MILITARY_FIRST"
+        ],
+        [
+          "INSIGHT_FIRST",
+          "BOARD_CONTROL"
+        ]
+      ],
+      "seeds": [
+        1,
+        200
+      ],
+      "orientations": [
+        "AS_LISTED",
+        "SWAPPED"
+      ]
+    }
+  ],
+  "samples": [
+    {
+      "label": "BASELINE",
+      "seed": "1",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          69,
+          72
+        ],
+        "snapshot": [
+          69,
+          72
+        ]
+      },
+      "hash": "8b3cd7de57b4c16dd4098dd76530be88eb4b278e314e260c6c420de2b77700f6"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "1",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          69,
+          72
+        ],
+        "snapshot": [
+          69,
+          72
+        ]
+      },
+      "hash": "8b3cd7de57b4c16dd4098dd76530be88eb4b278e314e260c6c420de2b77700f6"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "2",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "RIVER",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          74
+        ],
+        "snapshot": [
+          15,
+          74
+        ]
+      },
+      "hash": "1172d2f0449ca5c263646ccc379120055427fb919c02eaf0be8401c7bd2d0289"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "2",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "RIVER",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          74
+        ],
+        "snapshot": [
+          15,
+          74
+        ]
+      },
+      "hash": "1172d2f0449ca5c263646ccc379120055427fb919c02eaf0be8401c7bd2d0289"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "3",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "COAST",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          6,
+          17
+        ],
+        "snapshot": [
+          6,
+          17
+        ]
+      },
+      "hash": "911c2c0bc26e4f43f82a0a55675cd0d073f88ab4911ad115f12d2d2fad87fc83"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "3",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "COAST",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          6,
+          17
+        ],
+        "snapshot": [
+          6,
+          17
+        ]
+      },
+      "hash": "911c2c0bc26e4f43f82a0a55675cd0d073f88ab4911ad115f12d2d2fad87fc83"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "4",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          8,
+          67
+        ],
+        "snapshot": [
+          8,
+          67
+        ]
+      },
+      "hash": "d6629766d8c794f6e28eb5b5fcf2645436c4abecf944433e6a1f618fcb59e457"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "4",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          8,
+          67
+        ],
+        "snapshot": [
+          8,
+          67
+        ]
+      },
+      "hash": "d6629766d8c794f6e28eb5b5fcf2645436c4abecf944433e6a1f618fcb59e457"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "5",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          43,
+          248
+        ],
+        "snapshot": [
+          43,
+          248
+        ]
+      },
+      "hash": "609510580fcb1f66514f690895e634e6b59d84da12517481795f5d893e2b8163"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "5",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          43,
+          248
+        ],
+        "snapshot": [
+          43,
+          248
+        ]
+      },
+      "hash": "609510580fcb1f66514f690895e634e6b59d84da12517481795f5d893e2b8163"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "6",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          18,
+          78
+        ],
+        "snapshot": [
+          18,
+          78
+        ]
+      },
+      "hash": "6a7f025f89ebf860cbe9df63c9c7114db9e681e6dbc18ff1ff7810263253fdae"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "6",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          18,
+          78
+        ],
+        "snapshot": [
+          18,
+          78
+        ]
+      },
+      "hash": "6a7f025f89ebf860cbe9df63c9c7114db9e681e6dbc18ff1ff7810263253fdae"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "7",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          58,
+          58
+        ],
+        "snapshot": [
+          58,
+          58
+        ]
+      },
+      "hash": "047efaea948342546c020bef77e2f3ac5a227c8a34212be3fbca35fc142f7769"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "7",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "HIGHLAND",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          58,
+          58
+        ],
+        "snapshot": [
+          58,
+          58
+        ]
+      },
+      "hash": "047efaea948342546c020bef77e2f3ac5a227c8a34212be3fbca35fc142f7769"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "8",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          12,
+          55
+        ],
+        "snapshot": [
+          12,
+          55
+        ]
+      },
+      "hash": "46297a3957846627ad4b2012c8a913d8357be81770b09c7e8d737da0c1c6f8db"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "8",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          12,
+          55
+        ],
+        "snapshot": [
+          12,
+          55
+        ]
+      },
+      "hash": "46297a3957846627ad4b2012c8a913d8357be81770b09c7e8d737da0c1c6f8db"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "9",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          16,
+          33
+        ],
+        "snapshot": [
+          16,
+          33
+        ]
+      },
+      "hash": "7b711acec77e44372049b29787ee331ad6842c8b2a2b7bbd235e67680863abf2"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "9",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          16,
+          33
+        ],
+        "snapshot": [
+          16,
+          33
+        ]
+      },
+      "hash": "7b711acec77e44372049b29787ee331ad6842c8b2a2b7bbd235e67680863abf2"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "10",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "COAST",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          23,
+          76
+        ],
+        "snapshot": [
+          23,
+          76
+        ]
+      },
+      "hash": "ef0aa509ea1dd8677226c09c9b5b212f6b6a7234b42c044f7e759716447f3aec"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "10",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "COAST",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          23,
+          76
+        ],
+        "snapshot": [
+          23,
+          76
+        ]
+      },
+      "hash": "ef0aa509ea1dd8677226c09c9b5b212f6b6a7234b42c044f7e759716447f3aec"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "11",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          18,
+          60
+        ],
+        "snapshot": [
+          18,
+          60
+        ]
+      },
+      "hash": "6ca5c7c27e6773867d561c8c3f25d50e2f041e1c4323369ea76fb35a3160266a"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "11",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          18,
+          60
+        ],
+        "snapshot": [
+          18,
+          60
+        ]
+      },
+      "hash": "6ca5c7c27e6773867d561c8c3f25d50e2f041e1c4323369ea76fb35a3160266a"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "12",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          130
+        ],
+        "snapshot": [
+          15,
+          130
+        ]
+      },
+      "hash": "b99b88c87de457a922b48f9ad4229379639eaf29d0958ca5853254e6484d6207"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "12",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          130
+        ],
+        "snapshot": [
+          15,
+          130
+        ]
+      },
+      "hash": "b99b88c87de457a922b48f9ad4229379639eaf29d0958ca5853254e6484d6207"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "13",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          37,
+          17
+        ],
+        "snapshot": [
+          37,
+          17
+        ]
+      },
+      "hash": "73487ec779fed46ee162466d328e79fbe8a4ba3bb00505829177947f8f64ecec"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "13",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          37,
+          17
+        ],
+        "snapshot": [
+          37,
+          17
+        ]
+      },
+      "hash": "73487ec779fed46ee162466d328e79fbe8a4ba3bb00505829177947f8f64ecec"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "14",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          36,
+          10
+        ],
+        "snapshot": [
+          36,
+          10
+        ]
+      },
+      "hash": "d3f0b00ac271f1f40903d5d298341e6e4a71f8adb766ef96b69f6cf46481072e"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "14",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          36,
+          10
+        ],
+        "snapshot": [
+          36,
+          10
+        ]
+      },
+      "hash": "d3f0b00ac271f1f40903d5d298341e6e4a71f8adb766ef96b69f6cf46481072e"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "15",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "RIVER",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          125
+        ],
+        "snapshot": [
+          15,
+          125
+        ]
+      },
+      "hash": "185862f6fda18313754f285f7cab32581b8725e42840965e8e95fb0415808eb5"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "15",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "RIVER",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          15,
+          125
+        ],
+        "snapshot": [
+          15,
+          125
+        ]
+      },
+      "hash": "185862f6fda18313754f285f7cab32581b8725e42840965e8e95fb0415808eb5"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "16",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          63,
+          102
+        ],
+        "snapshot": [
+          63,
+          102
+        ]
+      },
+      "hash": "780a4516722a43bd89780f5bc52837ac851b2bbf94fab8b84ad3521712439350"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "16",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          63,
+          102
+        ],
+        "snapshot": [
+          63,
+          102
+        ]
+      },
+      "hash": "780a4516722a43bd89780f5bc52837ac851b2bbf94fab8b84ad3521712439350"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "17",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          372,
+          82
+        ],
+        "snapshot": [
+          372,
+          82
+        ]
+      },
+      "hash": "13508c1f15798ab5e85175127dc37c61ae1083dc6cc2c3ea44b76ebbc88d15fa"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "17",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "COAST",
+        "HIGHLAND",
+        "RIVER"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          372,
+          82
+        ],
+        "snapshot": [
+          372,
+          82
+        ]
+      },
+      "hash": "13508c1f15798ab5e85175127dc37c61ae1083dc6cc2c3ea44b76ebbc88d15fa"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "18",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          65,
+          78
+        ],
+        "snapshot": [
+          65,
+          78
+        ]
+      },
+      "hash": "b207f2e499dbae6acf1c441f50a029ba0b46b90af9ef056c8260c64805ac4f88"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "18",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          65,
+          78
+        ],
+        "snapshot": [
+          65,
+          78
+        ]
+      },
+      "hash": "b207f2e499dbae6acf1c441f50a029ba0b46b90af9ef056c8260c64805ac4f88"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "19",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          224,
+          28
+        ],
+        "snapshot": [
+          224,
+          28
+        ]
+      },
+      "hash": "9d1ba1213dce78a56f45a8b568d6c1339f1767817de46c9daaa12ac45a9351cd"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "19",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "RIVER",
+        "COAST",
+        "HIGHLAND"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          224,
+          28
+        ],
+        "snapshot": [
+          224,
+          28
+        ]
+      },
+      "hash": "9d1ba1213dce78a56f45a8b568d6c1339f1767817de46c9daaa12ac45a9351cd"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "20",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          14,
+          27
+        ],
+        "snapshot": [
+          14,
+          27
+        ]
+      },
+      "hash": "6c77ae44d3a88815b6ad650dd79b3ba0cf9c8e1dc3b8d2d185ae15ab13ffb106"
+    },
+    {
+      "label": "BASELINE",
+      "seed": "20",
+      "policies": {
+        "PLAYER": "RANDOM_LEGAL",
+        "SNAPSHOT": "RANDOM_LEGAL"
+      },
+      "laneModifiers": [
+        "HIGHLAND",
+        "RIVER",
+        "COAST"
+      ],
+      "score": [
+        0,
+        0
+      ],
+      "winner": "TIE",
+      "endingResources": {
+        "player": [
+          14,
+          27
+        ],
+        "snapshot": [
+          14,
+          27
+        ]
+      },
+      "hash": "6c77ae44d3a88815b6ad650dd79b3ba0cf9c8e1dc3b8d2d185ae15ab13ffb106"
+    }
+  ]
+}

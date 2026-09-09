@@ -1,0 +1,10 @@
+{
+  "$schema": "epoch.fixture.oracle-pin/1",
+  "description": "The repaired Node simulator is a reference oracle and fixture generator, never runtime code (Technical Plan sec.1.1, sec.9.2). Fixtures are only trustworthy if the oracle that produced them is pinned. Regenerating fixtures from a different oracle build requires updating this pin and saying why.",
+  "oracleFile": "_aiinfodocs/simulation/simulate.js",
+  "oracleSha256": "dd9cf09315400a5f385b5b68cd0677765c1dbd5d990e79f88f8b94bfe7f4abe6",
+  "rulesVersion": "1.2.0-v1-final",
+  "contentVersion": "1.0.1-v1",
+  "fixturesGeneratedAt": null,
+  "note": "fixturesGeneratedAt stays null until M1 exports the first suite. A mismatch between oracleSha256 and the file on disk is a hard failure, not a warning."
+}

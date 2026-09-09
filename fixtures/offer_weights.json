@@ -1,0 +1,13 @@
+{
+  "$schema": "epoch.fixture.offer-weights/1",
+  "rulesVersion": "1.2.0-v1-final",
+  "description": "V1 effective deck weighting (Core Spec sec.2.6). Turns 19-20 and 21-24 supersede MR sec.1.6 under the V1 Build Economy Exception and [Final Lock 2]. Percentages are BUILD / TRAIN / ADVANCE and sum to 100 in every band.",
+  "bands": [
+    { "firstTurn": 1,  "lastTurn": 3,  "age": 1, "build": 70, "train": 20, "advance": 10, "source": "MR sec.1.6" },
+    { "firstTurn": 4,  "lastTurn": 6,  "age": 1, "build": 45, "train": 35, "advance": 20, "source": "MR sec.1.6" },
+    { "firstTurn": 7,  "lastTurn": 12, "age": 2, "build": 35, "train": 40, "advance": 25, "source": "MR sec.1.6" },
+    { "firstTurn": 13, "lastTurn": 18, "age": 3, "build": 20, "train": 45, "advance": 35, "source": "MR sec.1.6" },
+    { "firstTurn": 19, "lastTurn": 20, "age": 4, "build": 20, "train": 50, "advance": 30, "source": "V1-EXCEPTION sec.6.7" },
+    { "firstTurn": 21, "lastTurn": 24, "age": 4, "build": 0,  "train": 60, "advance": 40, "source": "LOCKED-V1 Final Lock 2" }
+  ]
+}

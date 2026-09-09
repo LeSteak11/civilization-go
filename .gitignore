@@ -1,0 +1,29 @@
+# ---- .NET ----
+bin/
+obj/
+*.user
+*.suo
+artifacts/
+TestResults/
+
+# ---- Unity (generated; never committed) ----
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+# Unity export output only. NOT the repo build/ folder, which holds the
+# netstandard IsExternalInit shim and must stay tracked.
+/[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+/*.csproj
+/*.unityproj
+*.sln.DotSettings.user
+*.apk
+*.aab
+*.app
+*.ipa
+
+# ---- Local ----
+.DS_Store
+Thumbs.db
+*.log

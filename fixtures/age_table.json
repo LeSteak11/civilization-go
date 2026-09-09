@@ -1,0 +1,24 @@
+{
+  "$schema": "epoch.fixture.age-table/1",
+  "rulesVersion": "1.2.0-v1-final",
+  "description": "MR sec.2.2 / Core Spec sec.2.3, LOCKED. Do not rebalance. Costs are never authored on cards; BUILD, TRAIN and ADVANCE read the resolving Age from this table.",
+  "ages": [
+    { "index": 1, "name": "DAWN",   "firstTurn": 1,  "lastTurn": 6,  "perkCost": 2, "unitPower": 10, "unitCost": 6,  "buildCost": 8,  "structureTier": 1, "tierYield": 1 },
+    { "index": 2, "name": "BRONZE", "firstTurn": 7,  "lastTurn": 12, "perkCost": 3, "unitPower": 12, "unitCost": 8,  "buildCost": 11, "structureTier": 2, "tierYield": 2 },
+    { "index": 3, "name": "STEEL",  "firstTurn": 13, "lastTurn": 18, "perkCost": 5, "unitPower": 14, "unitCost": 11, "buildCost": 16, "structureTier": 3, "tierYield": 3 },
+    { "index": 4, "name": "MODERN", "firstTurn": 19, "lastTurn": 24, "perkCost": 9, "unitPower": 17, "unitCost": 16, "buildCost": 22, "structureTier": 4, "tierYield": 4 }
+  ],
+  "startingGrowth": 8,
+  "startingInsight": 2,
+  "baseIncomeGrowth": 3,
+  "baseIncomeInsight": 2,
+  "contestedTileGrowth": 1,
+  "contestedTileInsight": 1,
+  "unitMaxHp": 100,
+  "pointsPerExclusiveContestedTile": 1,
+  "maxTheoreticalScore": 72,
+  "stackPowerMultipliersHundredths": [100, 75, 50],
+  "counterBonusHundredths": 140,
+  "highlandDefenderBonus": 3,
+  "deltaPowerClamp": 40
+}
