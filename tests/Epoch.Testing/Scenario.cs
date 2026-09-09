@@ -138,7 +138,8 @@ namespace Epoch.Testing
             int yieldAmount,
             LaneId lane,
             int tier = 1,
-            int builtOnTurn = 1) =>
+            int builtOnTurn = 1,
+            Epoch.Core.Effects.ActiveEffect[]? effects = null) =>
             new StructureInstance(
                 new StableId(id),
                 owner,
@@ -147,7 +148,8 @@ namespace Epoch.Testing
                 yieldType,
                 yieldAmount,
                 lane,
-                builtOnTurn);
+                builtOnTurn,
+                effects ?? System.Array.Empty<Epoch.Core.Effects.ActiveEffect>());
 
         /// <summary>Find a unit by id across both sides, or null if it was destroyed.</summary>
         public static UnitInstance? FindUnit(this RunState state, string id)

@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using Epoch.Core.Effects;
+
 namespace Epoch.Core.Domain
 {
     /// <summary>
@@ -15,7 +18,8 @@ namespace Epoch.Core.Domain
         ResourceType YieldType,
         int YieldAmount,
         LaneId LaneId,
-        int BuiltOnTurn)
+        int BuiltOnTurn,
+        IReadOnlyList<ActiveEffect> Effects)
     {
         /// <summary>
         /// cost / yieldAmount, recorded for balance telemetry only and **never** used for

@@ -48,12 +48,73 @@ an engineering choice the Technical Plan left to implementation.
 | M | M1 loads content through a test-only fixture loader | `tests/Epoch.Testing/ContentFixtureLoader.cs` | M1 needs the real 48-entry pool to run matches; M2 owns strict deserialization, exhaustive validation, effect-coverage proof and the canonical content hash. The loader deliberately does not validate - rejecting malformed content is M2's job, and pretending otherwise here would hide that work. `ContentHash` is the placeholder `sha256:pending-m2`. |
 | N | Complete-run goldens use two different legal-choice policies | PLAYER first-legal, SNAPSHOT last-legal | Two identical policies mirror exactly: both sides reach tile 3 on the same turn with equal Power, every contested tile is disputed, and every match ends 0-0. That is correct for identical play but would leave the goldens silent about scoring, ownership persistence and contested income. GT-15c asserts the fixture contains scoring runs so it can never go quietly vacuous. |
 
-### Specification discrepancy found during M1 (needs an owner ruling)
+### Specification discrepancy found during M1 (RESOLVED by owner ruling, M2)
 
 **Core Spec sec.10.2, vector `OFF-19`.** The row is labelled "master `1`", but its expected
 address seeds derive from the card stream `910A2DEC89025CC1`, which the `STR-00` row gives
 for master **`0`**. The two rows cross-check each other and the label is the outlier; the
 implementation reproduces all three addresses and all three `OFF-19-OUT` outputs from
 master `0`. Taken as a typo in the label, with the numbers treated as normative. The
-algorithm is unambiguous either way, so nothing is blocked - but the document should be
-corrected so a future implementer does not re-derive this.
+algorithm is unambiguous either way, so nothing was blocked.
+
+**Owner ruling (M2):** corrected in the Core Spec from master `1` to master `0`. The
+address seeds and `OFF-19-OUT` values are unchanged and remain normative. Recorded as a
+documentation-label correction in Core Spec sec.17.4; `rulesVersion` stays
+`1.2.0-v1-final`.
+
+## Decisions made during M2
+
+| # | Decision | Value | Rationale |
+|---|---|---|---|
+| O | Hand-rolled strict JSON reader | `Epoch.Content.Json` | `System.Text.Json` is not in the netstandard2.1 surface, and decision (B) forbids NuGet packages in the simulation assemblies - verified by compiling a probe against `Epoch.Content`. Writing the reader also makes "strict" enforceable rather than aspirational: duplicate keys, trailing commas, comments, leading zeros, raw control characters and unknown members are all rejected, where a permissive general-purpose parser would accept most of them. **Tradeoff:** ~450 lines to maintain. If the owner prefers a serializer, adding `System.Text.Json` is a contained swap that requires reopening decision (B). |
+| P | Numbers never become floating point | `JsonValue.AsHundredths` | The magnitude lexeme is converted to fixed-point hundredths by integer arithmetic, so a content file cannot introduce a float into the authoritative path even by authoring one. More than two decimal places is refused rather than rounded: a magnitude the engine cannot represent exactly is a balance value nobody authored. |
+| Q | The content hash covers meaning, not bytes | `ContentHasher.Canonicalize` | Reformatting the manifest, reordering an entry's members or editing a designer note must not change the hash, because none of them change a match. Anything that does change a match - a magnitude, an Age range, a unit class, or the declaration order offer generation indexes into - must. Hashing raw file bytes would invalidate every stored fixture on a whitespace edit and tell a designer their comment broke determinism. |
+| R | The effect catalog lists **handlers**, not combinations | `EffectCatalog` | A row carries the set of scope values it accepts, because lane-scoped income is one code path parameterised by modifier rather than three paths. Reverse coverage then asserts every *handler* is exercised - a handler nothing authors is an untested code path claiming support - without forcing content to author every parameter value of every row. |
+| S | LANE- and SIDE-scoped `effectivePower` apply to the lane total, not per unit | `EffectSources.LanePowerEffects` | The authored rules text is explicit: "add N to the owner's effective lane Power" and "multiply the owner's effective lane Power by 1.10 ... before counter and damage resolution". Applied per unit these would be multiplied by the stack size and then scaled by 1.00/0.75/0.50. They are applied once to the side's post-stacking total, after the dominant class is chosen (a lane-wide bonus belongs to no class) and before the counter at C4 - exactly where the rules text puts them. |
+| T | A structure's effect applies once **per structure**, in its own lane | `EffectSources.LanePowerEffects` | `BUILD_GARRISON_POST` grants Power "there", and structures have no cap per lane or per run [Lock 9], so two Garrison Posts in one lane grant it twice. Each instance is its own effect source. |
+| U | Income is floored at zero | `IncomeSystem.Compute` | `PERK_CONV_RIVER_INSIGHT` subtracts 1 Growth income. Invariant PS-1 says a resource is never driven negative. With base income of 3 Growth / 2 Insight the floor is unreachable in V1 content; it exists so PS-1 holds by construction rather than by arithmetic coincidence, and it never clamps a positive value. |
+| V | Decision (L) confirmed by the owner | `EffectSources.UnitPowerEffects` | `UNIT_CLASS`-scoped Power effects apply per unit **before** stack ordering and the stack multipliers, and may therefore change stack rank and the dominant class selected at C3. |
+
+### Effects that M1 loaded but never executed (found by the M2 coverage gate)
+
+M1 gathered effects from perks only, using a single side-wide scope context. Five authored
+effects across four cards therefore matched nothing: they loaded, read as if they did
+something, and did nothing.
+
+| Card | Effect | Why it was dead |
+|---|---|---|
+| `PERK_ECO_RIVER_GROWTH` | `growthPerTurn` LANE/RIVER | income gathered with no lane context |
+| `PERK_UTIL_COAST_GROWTH` | `growthPerTurn` LANE/COAST | as above |
+| `PERK_UTIL_HIGHLAND_INSIGHT` | `insightPerTurn` LANE/HIGHLAND | as above |
+| `PERK_CONV_RIVER_INSIGHT` | `growthPerTurn` and `insightPerTurn` LANE/RIVER | as above (two effects) |
+| `BUILD_GARRISON_POST` | `effectivePower` LANE/TARGET_LANE | structure-borne effects were never gathered at all |
+
+This is the failure mode the Technical Plan sec.14 calls "effect silently ignored", and it
+is invisible in play, in a replay and in a balance report. It is now a build-time gate:
+content that authors an effect the engine does not implement is refused, and the run is
+never created.
+
+### Golden fixture regeneration (owner-approved, one time)
+
+`fixtures/golden/m1_replay_hashes.json` was regenerated once at M2. Two changes moved every
+value, and the fixture records both in its own `regenerationReason`:
+
+1. `contentHash` replaced the M1 placeholder `sha256:pending-m2` with the canonical hash
+   `sha256:41504936cd39a5c1fe1f5e466d77ce1a84dafa4f149b1e43741d6070657ed49a`, and
+   `contentPoolHash` is part of authoritative state.
+2. The five previously-dead effects above now execute, which changes match outcomes.
+
+No rule, Age table, content effect or balance value was changed.
+
+### M2 work deliberately not done
+
+At the owner's direction, the M2 **test** suite was not written. The mechanisms exist and
+are exercised by every test that runs a match, but the following have no dedicated
+coverage and should be added before or alongside M3:
+
+- negative validation cases (malformed, unknown-member, stale-version, authored-cost,
+  uncovered-effect documents are all *rejected* by code that no test exercises);
+- explicit decision (L) tests showing a `UNIT_CLASS` Power effect changing stack rank and
+  the dominant class at C3;
+- behavioural tests for the five effects repaired above.
+

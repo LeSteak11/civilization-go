@@ -92,7 +92,10 @@ namespace Epoch.Core.Systems
                 yieldType,
                 yieldAmount,
                 lane.Id,
-                turn)
+                turn,
+                // A BUILD's own effects travel with the instance, so a structure that
+                // grants Power in its lane keeps granting it for the rest of the run.
+                card.Effects)
             {
                 // X5: telemetry only, never a legality gate.
                 PaybackTurnsHundredths = yieldAmount == 0 ? 0 : (cost * FixedValue.Scale) / yieldAmount,

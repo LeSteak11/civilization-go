@@ -2,10 +2,10 @@
 
 "Civilization Go" — a 24-turn, roughly three-minute asynchronous mobile strategy match.
 
-This repository is at **M1: deterministic headless match**. A complete 24-turn match
-resolves deterministically with no engine, no UI and no I/O in the authoritative path.
-There is no playable game yet — M2 adds strict content loading, M3 Snapshot and replay,
-M4 the first UI.
+This repository is at **M2: content integration**. A complete 24-turn match resolves
+deterministically with no engine, no UI and no I/O in the authoritative path, and the
+authored content pool is strictly loaded, validated, proved executable and canonically
+hashed. There is no playable game yet — M3 adds Snapshot and replay, M4 the first UI.
 
 ## Authority order
 
@@ -25,7 +25,7 @@ code. Where oracle and specification disagree, the specification wins.
 
 ```
 src/Epoch.Core          deterministic simulation - no engine, filesystem, network, clock, or native RNG
-src/Epoch.Content       strict JSON loading, validation, canonical hashing (M2)
+src/Epoch.Content       strict JSON loading, validation, canonical hashing
 src/Epoch.Application   run orchestration, state hashing, headless match; Snapshot and replay land at M3
 src/Epoch.Debug         inspection and telemetry, outside the authoritative path (M5)
 tests/                  one console suite per concern; see run-tests.sh
@@ -79,6 +79,32 @@ A complete 24-turn headless match, and the tests that make it a contract:
 
 The Core still holds no gameplay *content* rules: costs, Power and tiers are read from the
 locked Age table, and card definitions arrive as validated immutable values.
+
+## What M2 adds
+
+- **A strict loader.** Hand-rolled, dependency-free JSON (`System.Text.Json` is not in the
+  netstandard2.1 surface and the project takes no NuGet package). Duplicate keys, trailing
+  commas, comments, leading zeros, raw control characters and unknown members are all
+  rejected rather than tolerated. Numbers never become floating point: magnitudes convert
+  to fixed-point hundredths by integer arithmetic.
+- **Validation that refuses rather than ignores.** Roster counts, unique ids, per-type card
+  shapes, Keystone gating, offer sufficiency for every turn, and a check that content's Age
+  table and offer weights still agree with the locked rules. A card that authors its own
+  numeric cost is refused, because ignoring it would let a designer believe they had
+  changed a price.
+- **Exhaustive effect coverage, as a build gate.** Every authored effect must be one the
+  engine actually executes, and every handler the engine advertises must be exercised by
+  the pool. This found five authored effects that M1 loaded but never ran — they are listed
+  in `docs/IMPLEMENTATION_LOCK.md`, and they now work.
+- **A canonical content hash** over the meaning of the content, not the file bytes, so
+  reformatting or editing a designer note does not invalidate stored fixtures, while any
+  change that alters a match does.
+
+> **Note on M2 test coverage.** The M2 *mechanisms* are exercised by every test that runs a
+> match, because all content now loads through the production loader. Dedicated negative
+> tests (malformed and stale documents being rejected) and behavioural tests for the
+> repaired effects were deliberately deferred; see the end of
+> `docs/IMPLEMENTATION_LOCK.md`.
 
 ### Regenerating the golden fixtures
 

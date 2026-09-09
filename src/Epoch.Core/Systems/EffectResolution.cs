@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Epoch.Core.Domain;
 using Epoch.Core.Effects;
@@ -7,102 +6,28 @@ using Epoch.Core.Numerics;
 namespace Epoch.Core.Systems
 {
     /// <summary>
-    /// The facts an effect's scope is tested against. Assembled by the calling system so
-    /// that scope matching stays a pure function of already-authoritative state.
-    /// </summary>
-    public readonly record struct EffectScopeContext(
-        Side Owner,
-        LaneId? Lane,
-        LaneModifier? LaneModifier,
-        UnitClass? UnitClass,
-        bool UnitHasReach,
-        bool OwnerHoldsContestedTile,
-        LaneId? TargetLane);
-
-    /// <summary>
     /// Core Spec sec.5.13 ordering rule, [Final Lock 4].
     ///
     /// Collect applicable effects, then partition by operation so that **every ADD
-    /// resolves before every MULTIPLY** — even an ADD with a numerically higher priority
+    /// resolves before every MULTIPLY** - even an ADD with a numerically higher priority
     /// than a MULTIPLY (GT-27). Within each partition sort by ascending priority, then
     /// sourceType in declaration order (LANE_MODIFIER, STRUCTURE, PERK, COMMANDER), then
     /// ascending ordinal sourceId. Resolve ADD, resolve MULTIPLY, clamp, then round once.
     ///
     /// Identical inputs therefore produce an identical total order on every platform.
+    ///
+    /// <para>This class owns ordering and arithmetic only. Deciding <i>which</i> effects
+    /// apply belongs to <see cref="EffectSources"/>, because the answer depends on where
+    /// the effect is being applied - a UNIT_CLASS Power bonus and a LANE Power bonus mean
+    /// different things even though they name the same target stat. Keeping one scope
+    /// implementation rather than two is what stops an authored effect from quietly
+    /// matching nothing.</para>
     /// </summary>
     public static class EffectResolution
     {
         /// <summary>
-        /// Does this effect apply in this context? Scope values are the authored
-        /// vocabulary of the V1 content manifest.
-        /// </summary>
-        public static bool Applies(ActiveEffect effect, EffectScopeContext context, int turn)
-        {
-            if (effect.AppliesFrom > turn)
-            {
-                // Effects are never retroactive (Core Spec sec.6.4 A4).
-                return false;
-            }
-
-            switch (effect.Scope)
-            {
-                case EffectScope.GLOBAL:
-                    return true;
-
-                case EffectScope.SIDE:
-                    // "OWNER" is the only authored side scope: the acquiring side.
-                    return true;
-
-                case EffectScope.LANE:
-                    return AppliesToLane(effect.ScopeValue, context);
-
-                case EffectScope.UNIT_CLASS:
-                    return AppliesToUnitClass(effect.ScopeValue, context);
-
-                default:
-                    return false;
-            }
-        }
-
-        private static bool AppliesToLane(string? scopeValue, EffectScopeContext context)
-        {
-            switch (scopeValue)
-            {
-                case "RIVER":
-                    return context.LaneModifier == Domain.LaneModifier.RIVER;
-                case "HIGHLAND":
-                    return context.LaneModifier == Domain.LaneModifier.HIGHLAND;
-                case "COAST":
-                    return context.LaneModifier == Domain.LaneModifier.COAST;
-                case "OWNER_HOLDS_CONTESTED_TILE":
-                    return context.OwnerHoldsContestedTile;
-                case "TARGET_LANE":
-                    return context.TargetLane is not null && context.Lane == context.TargetLane;
-                default:
-                    return false;
-            }
-        }
-
-        private static bool AppliesToUnitClass(string? scopeValue, EffectScopeContext context)
-        {
-            switch (scopeValue)
-            {
-                case "SWORD":
-                    return context.UnitClass == Domain.UnitClass.SWORD;
-                case "SPEAR":
-                    return context.UnitClass == Domain.UnitClass.SPEAR;
-                case "HORSE":
-                    return context.UnitClass == Domain.UnitClass.HORSE;
-                case "REACH":
-                    return context.UnitHasReach;
-                default:
-                    return false;
-            }
-        }
-
-        /// <summary>
         /// Apply the total order to a base value. <paramref name="applicable"/> must
-        /// already be scope-filtered; this method owns ordering and arithmetic only.
+        /// already be gathered by <see cref="EffectSources"/> for the application point.
         /// </summary>
         public static FixedValue Resolve(FixedValue baseValue, IReadOnlyList<ActiveEffect> applicable)
         {
@@ -143,9 +68,14 @@ namespace Epoch.Core.Systems
         }
 
         /// <summary>
-        /// The stable total order within one operation partition. A List.Sort is not a
-        /// stable sort, which is precisely why the comparator must be total: no two
-        /// distinct effects may compare equal, and sourceId uniqueness guarantees that.
+        /// The total order within one operation partition. List.Sort is not a stable sort,
+        /// which is why the comparator must be total: it falls through priority, source
+        /// type and source id to the effect id, and effect ids are unique across the pool.
+        ///
+        /// Two instances of the same structure card can present the same effect twice.
+        /// They compare equal, and that is harmless: both partitions are commutative in
+        /// their own operation, so an arbitrary order between two identical effects
+        /// produces an identical result.
         /// </summary>
         public static int CompareEffects(ActiveEffect a, ActiveEffect b)
         {
@@ -163,45 +93,6 @@ namespace Epoch.Core.Systems
 
             int bySourceId = a.SourceId.CompareTo(b.SourceId);
             return bySourceId != 0 ? bySourceId : a.EffectId.CompareTo(b.EffectId);
-        }
-
-        /// <summary>
-        /// Gather every effect a side currently owns that matches a stat, trigger and scope.
-        /// Perk order follows acquisition order, which is deterministic; the comparator
-        /// above then imposes the authoritative order regardless.
-        /// </summary>
-        public static List<ActiveEffect> Gather(
-            PlayerState side,
-            string targetStat,
-            EffectTrigger trigger,
-            EffectScopeContext context,
-            int turn)
-        {
-            List<ActiveEffect> gathered = new List<ActiveEffect>();
-            for (int p = 0; p < side.Perks.Count; p++)
-            {
-                IReadOnlyList<ActiveEffect> effects = side.Perks[p].Effects;
-                for (int e = 0; e < effects.Count; e++)
-                {
-                    ActiveEffect effect = effects[e];
-                    if (!string.Equals(effect.TargetStat, targetStat, StringComparison.Ordinal))
-                    {
-                        continue;
-                    }
-
-                    if (effect.Trigger != trigger)
-                    {
-                        continue;
-                    }
-
-                    if (Applies(effect, context, turn))
-                    {
-                        gathered.Add(effect);
-                    }
-                }
-            }
-
-            return gathered;
         }
     }
 }

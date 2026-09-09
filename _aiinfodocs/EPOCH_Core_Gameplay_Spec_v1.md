@@ -1193,7 +1193,7 @@ Golden vectors (decimal PCG outputs; hexadecimal 64-bit SplitMix outputs):
 | PCG-00 | `initstate=42`, `initseq=54`, first six | `2707161783, 2068313097, 3122475824, 2211639955, 3215226955, 3421331566` |
 | STR-00 | master `0` → card/lane/tie | `910A2DEC89025CC1 / 975835DE1C9756CE / 1D0B14E4DB018FED` |
 | STR-01 | master `0123456789ABCDEF` → card/lane/tie | `E821EEBBC0778421 / 629DD08FAE280E80 / 9B4C210F98EC07FA` |
-| OFF-19 | master `1`, turn 19, slots 0/1/2, redraw 0: address seeds | `933FE6C326E506C1 / 468BE5E4E85FCD29 / F3385872DB25850C` |
+| OFF-19 | master `0`, turn 19, slots 0/1/2, redraw 0: address seeds | `933FE6C326E506C1 / 468BE5E4E85FCD29 / F3385872DB25850C` |
 | OFF-19-OUT | PCG at those addresses, first output | `4207010209 / 4199241477 / 3060309534` |
 
 These vectors are normative and must pass unchanged on every supported platform.
@@ -1557,6 +1557,26 @@ Nineteen owner-approved rules plus one owner-approved exception applied througho
 ### 17.3 Revision 2 — Final V1 rules lock (8 September 2026)
 
 `rulesVersion` `1.1.0-lock1` → **`1.2.0-v1-final`**. Owner decisions resolved `OPEN-V1-006`, `010`, `023`, `026`, `028`, and `030`; golden coverage expanded through GT-30. `OPEN-V1-022` remains the named content assignment and is fulfilled by the companion V1 Content Manifest. No blocking rule question remains.
+
+### 17.4 Editorial correction — `OFF-19` seed label (owner-approved)
+
+**`rulesVersion` is unchanged at `1.2.0-v1-final`.** This is a documentation-label
+correction, not a rules change.
+
+The §10.2 vector row `OFF-19` was labelled "master `1`". Its expected address seeds derive
+from the card stream `910A2DEC89025CC1`, which the `STR-00` row gives for master **`0`**;
+the two rows cross-check each other and the label was the outlier. The label now reads
+master `0`.
+
+The address seeds `933FE6C326E506C1 / 468BE5E4E85FCD29 / F3385872DB25850C` and the
+`OFF-19-OUT` outputs `4207010209 / 4199241477 / 3060309534` are **unchanged and remain
+normative**. No implementation, seed, offer sequence, recorded match or stored fixture is
+affected: the algorithm was never ambiguous, and the C# implementation already reproduced
+these values before the label was corrected.
+
+Raised during M1 implementation; ruled by the project owner.
+
+---
 
 ---
 

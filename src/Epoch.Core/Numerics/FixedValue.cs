@@ -126,9 +126,10 @@ namespace Epoch.Core.Numerics
 
         /// <summary>
         /// Ordinal integer formatting without System.Globalization. Deliberate: the Core
-        /// must produce identical text on every platform and under every locale.
+        /// must produce identical text on every platform and under every locale, and the
+        /// same guarantee is needed by anything that canonicalizes state or content.
         /// </summary>
-        internal static string IntToString(int value)
+        public static string IntToString(int value)
         {
             if (value == 0)
             {

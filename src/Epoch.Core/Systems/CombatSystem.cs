@@ -203,7 +203,7 @@ namespace Epoch.Core.Systems
                     ? StackMultipliersHundredths[i]
                     : 0;
 
-                FixedValue basePower = UnitPowerWithEffects(state, player, lane, unit);
+                FixedValue basePower = UnitPowerWithEffects(player, unit);
                 FixedValue effective = basePower.ScaleByHundredths(multiplier);
 
                 total += effective;
@@ -214,6 +214,16 @@ namespace Epoch.Core.Systems
             }
 
             UnitClass? dominant = DominantClass(ranked, byClass, contribution);
+
+            // LANE-scoped Power is one addition to the side's post-stacking total, not a
+            // per-unit bonus: the authored rules text says "add N to the owner's effective
+            // lane Power". It lands after the dominant class is chosen -- a lane-wide bonus
+            // belongs to no class -- and before the counter at C4.
+            List<ActiveEffect> lanePower = EffectSources.LanePowerEffects(player, lane);
+            if (lanePower.Count > 0)
+            {
+                total = EffectResolution.Resolve(total, lanePower);
+            }
 
             // Allocation order: frontline first in stack order, then REACH supporters
             // (TV-13b: "the front-line tile-3 unit remains first, then the now-eligible
@@ -231,19 +241,9 @@ namespace Epoch.Core.Systems
         /// what lets a class-scoped perk change which class is dominant, which is the only
         /// reading under which UNIT_CLASS scope is meaningful at C3.
         /// </summary>
-        private static FixedValue UnitPowerWithEffects(RunState state, PlayerState player, LaneState lane, UnitInstance unit)
+        private static FixedValue UnitPowerWithEffects(PlayerState player, UnitInstance unit)
         {
-            EffectScopeContext context = new EffectScopeContext(
-                player.Side,
-                lane.Id,
-                lane.Modifier,
-                unit.UnitClass,
-                unit.HasReach,
-                lane.Tile3HolderPrevTurn == player.Side,
-                lane.Id);
-
-            List<ActiveEffect> effects = EffectResolution.Gather(
-                player, "effectivePower", EffectTrigger.ON_COMBAT_PRE, context, state.Turn);
+            List<ActiveEffect> effects = EffectSources.UnitPowerEffects(player, unit);
 
             return effects.Count == 0
                 ? unit.BasePowerFixed
