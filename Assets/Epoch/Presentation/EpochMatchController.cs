@@ -87,6 +87,7 @@ namespace Epoch.Presentation
             Screen.orientation = ScreenOrientation.Portrait;
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
+            EnsureGameCamera();
             EnsureEventSystem();
             BuildCanvas();
 
@@ -100,6 +101,7 @@ namespace Epoch.Presentation
                 _session = new PlayableMatchSession(seed, _content);
                 IsReady = true;
                 RenderChoice();
+                ShowHelp();
             }
             catch (Exception exception)
             {
@@ -114,10 +116,21 @@ namespace Epoch.Presentation
 
         public void CaptureEditorPreview(string path)
         {
-            GameObject cameraObject = new GameObject("EPOCH Preview Camera");
-            Camera camera = cameraObject.AddComponent<Camera>();
+            Camera? camera = FindAnyObjectByType<Camera>();
+            bool createdCamera = camera is null;
+            GameObject? cameraObject = null;
+            if (camera is null)
+            {
+                cameraObject = new GameObject("EPOCH Preview Camera");
+                camera = cameraObject.AddComponent<Camera>();
+            }
+
+            CameraClearFlags previousClearFlags = camera.clearFlags;
+            Color previousBackground = camera.backgroundColor;
+            int previousCullingMask = camera.cullingMask;
             camera.clearFlags = CameraClearFlags.SolidColor;
             camera.backgroundColor = Navy;
+            camera.cullingMask = ~0;
             camera.orthographic = true;
             camera.transform.position = new Vector3(0, 0, -10);
 
@@ -141,7 +154,15 @@ namespace Epoch.Presentation
             camera.targetTexture = null;
             target.Release();
             DestroyImmediate(target);
-            DestroyImmediate(cameraObject);
+            _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            _canvas.worldCamera = null;
+            camera.clearFlags = previousClearFlags;
+            camera.backgroundColor = previousBackground;
+            camera.cullingMask = previousCullingMask;
+            if (createdCamera && cameraObject is not null)
+            {
+                DestroyImmediate(cameraObject);
+            }
         }
 #endif
 
@@ -155,6 +176,25 @@ namespace Epoch.Presentation
             GameObject system = new GameObject("EventSystem");
             system.AddComponent<EventSystem>();
             system.AddComponent<StandaloneInputModule>();
+        }
+
+        private void EnsureGameCamera()
+        {
+            Camera? camera = FindAnyObjectByType<Camera>();
+            if (camera is not null)
+            {
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Navy;
+                return;
+            }
+
+            GameObject cameraObject = new GameObject("EPOCH Camera", typeof(Camera));
+            cameraObject.transform.SetParent(transform, false);
+            camera = cameraObject.GetComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Navy;
+            camera.cullingMask = 0;
+            camera.depth = -100;
         }
 
         private void BuildCanvas()
@@ -179,14 +219,17 @@ namespace Epoch.Presentation
             _turnText = MakeText("TURN", _header, new Vector2(0.34f, 0.05f), new Vector2(0.66f, 0.95f), 16, Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
             _snapshotText = MakeText("SNAPSHOT", _header, new Vector2(0.66f, 0.05f), new Vector2(0.985f, 0.95f), 15, Snapshot, TextAnchor.MiddleRight, FontStyle.Bold);
 
-            Button speed = MakeButton("Speed", _footer, new Vector2(0.01f, 0.08f), new Vector2(0.24f, 0.92f), Charcoal, ToggleSpeed);
+            Button speed = MakeButton("Speed", _footer, new Vector2(0.01f, 0.08f), new Vector2(0.20f, 0.92f), Charcoal, ToggleSpeed);
             _speedText = speed.GetComponentInChildren<Text>();
             _speedText.text = "FAST ×1";
-            MakeButton("Skip", _footer, new Vector2(0.25f, 0.08f), new Vector2(0.48f, 0.92f), Charcoal, SkipAnimation)
+            MakeButton("Skip", _footer, new Vector2(0.21f, 0.08f), new Vector2(0.40f, 0.92f), Charcoal, SkipAnimation)
                 .GetComponentInChildren<Text>().text = "SKIP";
-            _statusText = MakeText("Choose one card", _footer, new Vector2(0.49f, 0.08f), new Vector2(0.99f, 0.92f), 12, Parchment, TextAnchor.MiddleRight, FontStyle.Normal);
+            MakeButton("Help", _footer, new Vector2(0.41f, 0.08f), new Vector2(0.57f, 0.92f), Charcoal, ShowHelp)
+                .GetComponentInChildren<Text>().text = "HELP";
+            _statusText = MakeText("Pick 1 card", _footer, new Vector2(0.58f, 0.08f), new Vector2(0.99f, 0.92f), 11, Parchment, TextAnchor.MiddleRight, FontStyle.Normal);
 
             _overlay = MakePanel("Overlay", root, Vector2.zero, Vector2.one, new Color(0.02f, 0.035f, 0.055f, 0.95f));
+            _overlay.GetComponent<Image>().raycastTarget = true;
             _overlay.gameObject.SetActive(false);
         }
 
@@ -196,11 +239,11 @@ namespace Epoch.Presentation
             RenderState(_session.State);
             RenderCards();
             SetLaneTargeting(null);
-            _statusText.text = "CHOOSE ONE · shared offers";
+            _statusText.text = "PICK 1 CARD BELOW";
 
             if (_session.IsForcedPass && !_session.IsComplete)
             {
-                _statusText.text = "NO LEGAL CARD · FORCED PASS";
+                _statusText.text = "NO AFFORDABLE MOVE · TURN SKIPPED";
                 if (_forcedPassRoutine is not null)
                 {
                     StopCoroutine(_forcedPassRoutine);
@@ -239,9 +282,9 @@ namespace Epoch.Presentation
 
                 int playerStructures = CountStructures(state.Player, lane.Id);
                 int snapshotStructures = CountStructures(state.Snapshot, lane.Id);
-                MakeText(lane.Modifier.ToString(), lanePanel, new Vector2(0, 0.91f), new Vector2(1, 1), 12, Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
-                MakeText("S BUILD " + snapshotStructures, lanePanel, new Vector2(0.03f, 0.84f), new Vector2(0.97f, 0.91f), 9, Snapshot, TextAnchor.MiddleCenter, FontStyle.Normal);
-                MakeText("P BUILD " + playerStructures, lanePanel, new Vector2(0.03f, 0.01f), new Vector2(0.97f, 0.08f), 9, Player, TextAnchor.MiddleCenter, FontStyle.Normal);
+                MakeText(lane.Modifier + "\n" + LaneRule(lane.Modifier), lanePanel, new Vector2(0, 0.90f), new Vector2(1, 1), 9, Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
+                MakeText("ENEMY BUILDS " + snapshotStructures, lanePanel, new Vector2(0.03f, 0.83f), new Vector2(0.97f, 0.90f), 8, Snapshot, TextAnchor.MiddleCenter, FontStyle.Normal);
+                MakeText("YOUR BUILDS " + playerStructures, lanePanel, new Vector2(0.03f, 0.01f), new Vector2(0.97f, 0.08f), 8, Player, TextAnchor.MiddleCenter, FontStyle.Normal);
 
                 for (int tileIndex = 5; tileIndex >= 1; tileIndex--)
                 {
@@ -293,7 +336,7 @@ namespace Epoch.Presentation
             RectTransform rect = token.GetComponent<RectTransform>();
             rect.SetParent(tile, false);
             rect.anchorMin = rect.anchorMax = new Vector2(unit.Owner == Side.PLAYER ? 0.28f : 0.72f, 0.40f);
-            rect.sizeDelta = new Vector2(32, 32);
+            rect.sizeDelta = new Vector2(40, 40);
             rect.anchoredPosition = StackOffset(unit, tileIndex);
 
             Image image = token.GetComponent<Image>();
@@ -307,8 +350,8 @@ namespace Epoch.Presentation
                 rect.localRotation = Quaternion.Euler(0, 0, 45);
             }
 
-            Text label = MakeText(UnitMark(unit) + "\n" + unit.Hp, rect,
-                Vector2.zero, Vector2.one, 9, Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text label = MakeText(UnitMark(unit) + "\nHP " + unit.Hp, rect,
+                Vector2.zero, Vector2.one, 7, Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             if (unit.UnitClass == UnitClass.HORSE)
             {
                 label.rectTransform.localRotation = Quaternion.Euler(0, 0, -45);
@@ -352,12 +395,12 @@ namespace Epoch.Presentation
                 outline.effectDistance = _selectedOffer == i ? new Vector2(4, 4) : new Vector2(1, 1);
 
                 string type = card.Definition.IsKeystone ? "KEYSTONE" : card.Definition.CardType.ToString();
-                string resource = card.Definition.CostResource == ResourceType.GROWTH ? "G" : "I";
-                string reason = card.IsLegal ? "TAP TO CHOOSE" : IllegalLabel(card.IllegalReason);
+                string resource = card.Definition.CostResource == ResourceType.GROWTH ? "GROWTH" : "INSIGHT";
+                string reason = card.IsLegal ? "PICK THIS" : IllegalLabel(card.IllegalReason);
                 button.GetComponentInChildren<Text>().text =
-                    type + "  ·  " + card.Cost + resource + "\n" +
+                    type + " · COST " + card.Cost + " " + resource + "\n" +
                     card.Definition.DisplayName + "\n" + card.Definition.ShortEffectLine + "\n" + reason;
-                button.GetComponentInChildren<Text>().fontSize = 10;
+                button.GetComponentInChildren<Text>().fontSize = 9;
             }
 
             if (_selectedOffer is not null)
@@ -388,7 +431,7 @@ namespace Epoch.Presentation
 
             _selectedOffer = offerIndex;
             SetLaneTargeting(card.LegalLanes);
-            _statusText.text = "SELECT A LEGAL LANE · tap CANCEL to return";
+            _statusText.text = "NOW PICK A GLOWING LANE";
             RenderCards();
         }
 
@@ -415,7 +458,7 @@ namespace Epoch.Presentation
             _selectedOffer = null;
             SetLaneTargeting(null);
             RenderCards();
-            _statusText.text = "CHOOSE ONE · shared offers";
+            _statusText.text = "PICK 1 CARD BELOW";
         }
 
         private void Resolve(Selection selection)
@@ -658,6 +701,41 @@ namespace Epoch.Presentation
             }
         }
 
+        private void ShowHelp()
+        {
+            if (_animating)
+            {
+                return;
+            }
+
+            _overlay.gameObject.SetActive(true);
+            ClearChildren(_overlay);
+            MakeText("HOW TO PLAY", _overlay,
+                new Vector2(0.08f, 0.84f), new Vector2(0.92f, 0.94f), 26, Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
+            MakeText(
+                "GOAL\nHave the higher score after 24 turns.\n\n" +
+                "EACH TURN · PICK 1 CARD\n" +
+                "BUILD = earn more resources every turn\n" +
+                "TRAIN = add a unit that marches and fights\n" +
+                "ADVANCE = buy a permanent upgrade\n\n" +
+                "THE BOARD\nUnits march toward the gold center tile.\n" +
+                "Hold that center to earn resources and score.\n\n" +
+                "SHAPES\n■ Sword    ● Spear    ◆ Horse\n" +
+                "The number inside is HP (health).\n\n" +
+                "Teal = YOU    Coral = SNAPSHOT opponent",
+                _overlay, new Vector2(0.09f, 0.23f), new Vector2(0.91f, 0.83f), 14,
+                Parchment, TextAnchor.MiddleCenter, FontStyle.Normal);
+            Button start = MakeButton("Start", _overlay,
+                new Vector2(0.18f, 0.10f), new Vector2(0.82f, 0.19f), Gold, CloseHelp);
+            start.GetComponentInChildren<Text>().text = "GOT IT · START PLAYING";
+            start.GetComponentInChildren<Text>().color = Ink;
+        }
+
+        private void CloseHelp()
+        {
+            _overlay.gameObject.SetActive(false);
+        }
+
         private void ShowFatal(string message)
         {
             _overlay.gameObject.SetActive(true);
@@ -721,9 +799,16 @@ namespace Epoch.Presentation
         }
 
         private static string UnitMark(UnitInstance unit) =>
-            unit.UnitClass == UnitClass.SWORD ? "S" + (unit.HasReach ? "·R" : string.Empty)
-            : unit.UnitClass == UnitClass.SPEAR ? "P" + (unit.HasReach ? "·R" : string.Empty)
-            : "H" + (unit.HasReach ? "·R" : string.Empty);
+            unit.UnitClass == UnitClass.SWORD ? "SW" + (unit.HasReach ? " R" : string.Empty)
+            : unit.UnitClass == UnitClass.SPEAR ? "SP" + (unit.HasReach ? " R" : string.Empty)
+            : "HO" + (unit.HasReach ? " R" : string.Empty);
+
+        private static string LaneRule(LaneModifier modifier) => modifier switch
+        {
+            LaneModifier.RIVER => "Growth builds +1",
+            LaneModifier.HIGHLAND => "Center defender +3",
+            _ => "Units move 2 tiles",
+        };
 
         private static string IllegalLabel(ValidationError error) => error switch
         {
