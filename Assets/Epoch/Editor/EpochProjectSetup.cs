@@ -706,6 +706,72 @@ namespace Epoch.Editor
             Debug.Log("EPOCH Group 6a art integration smoke passed. Approval captures: " + root);
         }
 
+        public static void SmokeGroup6b()
+        {
+            EnsureGroup6bArtImports();
+
+            GameObject host = new GameObject("EPOCH Group 6b Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 6b shell failed to initialize: " + shell.StartupError);
+            }
+
+            string root = Path.GetFullPath("Logs/Group6bApproval");
+            Directory.CreateDirectory(root);
+
+            shell.ShowResultPreview();
+            AssertNamedSprite(shell.transform, "Result Shell Art", "rr_shell_01");
+            shell.CaptureEditorPreview(
+                Path.Combine(root, "reference-result-preview.png"),
+                390, 844, new Rect(0, 20, 390, 804), EpochShellPreviewSurface.RESULT);
+
+            _ = CompleteNewBattle(shell.Game, "group6b-victory", "0", false);
+            AssertResult(shell, MatchOutcome.VICTORY, BattleRewardStatus.CREDITED, 300, 300);
+            AssertNamedSprite(shell.transform, "Result Shell Art", "rr_shell_01");
+            CaptureResult(shell, root, "reference-result-victory", 390, 844, new Rect(0, 20, 390, 804));
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 6b Result & Rewards art smoke passed. Approval captures: " + root);
+        }
+
+        private static void EnsureGroup6bArtImports()
+        {
+            const string shellPath = "Assets/EPOCH_Visuals/UI/ResultRewards/rr_shell_01.png";
+            ConfigureSpriteImport(shellPath, Vector4.zero);
+            SyncArtToResources(shellPath);
+
+            string[] soft =
+            {
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_outcome_victory.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_outcome_tie.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_outcome_defeat.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_score.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_gold_credit.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_gold_already.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_practice.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_continue.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_replay.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_copy_seed.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_practice_restart.png",
+                "Assets/EPOCH_Visuals/UI/ResultRewards/rr_seed_row.png",
+            };
+            foreach (string path in soft)
+            {
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                ConfigureSpriteImport(path, Vector4.zero);
+                SyncArtToResources(path);
+            }
+
+            AssetDatabase.Refresh();
+        }
+
         private static void EnsureGroup6aArtImports()
         {
             string[] plain =

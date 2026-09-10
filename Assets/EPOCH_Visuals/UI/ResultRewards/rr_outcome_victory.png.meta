@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 7ef246090f759fc43922ca3ee749161b
+guid: 85c8b8a7eb40a4149b97d05ed0f08eb8
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -7006772936263206209
-    second: rr_shell_01_0
+      213: 5214349016665296105
+    second: rr_outcome_victory_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: rr_shell_01_0
+      name: rr_outcome_victory_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 901
-        height: 1656
+        width: 857
+        height: 1658
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fbaf5305321f2ce90800000000000000
-      internalID: -7006772936263206209
+      spriteID: 9ec0e39cdc61d5840800000000000000
+      internalID: 5214349016665296105
       vertices: []
       indices: 
       edges: []

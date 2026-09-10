@@ -508,6 +508,42 @@ StickyPrimary("START NEW BATTLE", StartBattle, state.CanStartNewBattle);
                           result.GoldBalance;
             string seed = result is null ? "SEED  â€”" : "SEED  " + result.Seed;
 
+            // RR-SHELL-01 chrome (locked). Piece art soft-falls back to wireframe text when missing.
+            RectTransform shellArt = EpochUiFactory.Panel(
+                "Result Shell Art", _destinationLayer, new Color(0f, 0f, 0f, 0f),
+                new Vector2(0.02f, 0.02f), new Vector2(0.98f, 0.98f));
+            EpochArtCatalog.ApplySprite(shellArt.GetComponent<Image>(), EpochArtCatalog.ResultShell);
+
+            Sprite? outcomeArt = result is null ? null : EpochArtCatalog.ResultOutcome(result.Outcome);
+            if (outcomeArt is not null)
+            {
+                EpochUiFactory.SpriteImage(
+                    "Result Outcome Art", _destinationLayer, outcomeArt,
+                    new Vector2(0.08f, 0.74f), new Vector2(0.92f, 0.90f));
+            }
+
+            if (EpochArtCatalog.ResultScore is not null)
+            {
+                EpochUiFactory.SpriteImage(
+                    "Result Score Art", _destinationLayer, EpochArtCatalog.ResultScore,
+                    new Vector2(0.10f, 0.62f), new Vector2(0.90f, 0.73f));
+            }
+
+            Sprite? rewardArt = result is null ? null : EpochArtCatalog.ResultRewardStatus(result.RewardStatus);
+            if (rewardArt is not null)
+            {
+                EpochUiFactory.SpriteImage(
+                    "Result Reward Art", _destinationLayer, rewardArt,
+                    new Vector2(0.10f, 0.48f), new Vector2(0.90f, 0.61f));
+            }
+
+            if (EpochArtCatalog.ResultSeedRow is not null)
+            {
+                EpochUiFactory.SpriteImage(
+                    "Result Seed Row Art", _destinationLayer, EpochArtCatalog.ResultSeedRow,
+                    new Vector2(0.10f, 0.42f), new Vector2(0.90f, 0.48f));
+            }
+
             EpochUiFactory.Text(
                 "Outcome", outcome,
                 _destinationLayer, _font, EpochUiTokens.TextTitle, EpochUiTokens.Text,
@@ -531,23 +567,54 @@ StickyPrimary("START NEW BATTLE", StartBattle, state.CanStartNewBattle);
             }
 
             float buttonTop = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.36f : 0.35f;
-            EpochUiFactory.Button(
-                "Replay", "REPLAY Â· READ ONLY", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
+            Button replay = EpochUiFactory.Button(
+                "Replay", "REPLAY · READ ONLY", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
                 BeginReadOnlyReplay, new Vector2(0.06f, buttonTop - 0.09f), new Vector2(0.47f, buttonTop),
                 result?.CanReplay == true);
-            EpochUiFactory.Button(
+            SoftDressResultButton(replay, EpochArtCatalog.ResultReplay);
+
+            Button copySeed = EpochUiFactory.Button(
                 "Copy Seed", "COPY SEED", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
                 CopyResultSeed, new Vector2(0.53f, buttonTop - 0.09f), new Vector2(0.94f, buttonTop),
                 result?.CanCopySeed == true);
-            EpochUiFactory.Button(
-                "Practice Restart", "RESTART SAME SEED Â· PRACTICE / NO GOLD",
+            SoftDressResultButton(copySeed, EpochArtCatalog.ResultCopySeed);
+
+            Button practiceRestart = EpochUiFactory.Button(
+                "Practice Restart", "RESTART SAME SEED · PRACTICE / NO GOLD",
                 _destinationLayer, _font, EpochButtonStyle.QUIET,
                 RestartSameSeedPractice, new Vector2(0.06f, buttonTop - 0.21f), new Vector2(0.94f, buttonTop - 0.12f),
                 result?.CanRestartSameSeedPractice == true);
+            SoftDressResultButton(practiceRestart, EpochArtCatalog.ResultPracticeRestart);
+
             StickyPrimary(
                 "CONTINUE TO CAPITAL",
                 result is null ? ShowCapital : ContinueToCapital,
                 result is null || result.CanContinueToCapital);
+            SoftDressResultButton(
+                _stickyLayer.Find("Primary Sticky Action")?.GetComponent<Button>(),
+                EpochArtCatalog.ResultContinue);
+        }
+
+        private static void SoftDressResultButton(Button? button, Sprite? sprite)
+        {
+            if (button is null || sprite is null)
+            {
+                return;
+            }
+
+            Image image = button.GetComponent<Image>();
+            if (!EpochArtCatalog.TryApplySprite(image, sprite, sliced: true))
+            {
+                return;
+            }
+
+            ColorBlock colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.92f, 0.92f, 0.92f, 1f);
+            colors.pressedColor = new Color(0.80f, 0.80f, 0.80f, 1f);
+            colors.selectedColor = Color.white;
+            colors.disabledColor = new Color(1f, 1f, 1f, 0.35f);
+            button.colors = colors;
         }
 
         public void ContinueToCapital()
