@@ -61,6 +61,9 @@ namespace Epoch.Presentation
         private Sprite? _circleSprite;
         private EpochGameSession? _hostedGame;
         private Action? _hostedCompletion;
+        private PlayableMatchSession? _hostedReplaySession;
+        private IReadOnlyList<PresentationTurn>? _hostedReplayFrames;
+        private Action? _hostedReplayCompletion;
 
         public bool IsReady { get; private set; }
 
@@ -75,6 +78,25 @@ namespace Epoch.Presentation
 
             _hostedGame = game ?? throw new ArgumentNullException(nameof(game));
             _hostedCompletion = completed ?? throw new ArgumentNullException(nameof(completed));
+        }
+
+        public void InitializeHostedReplay(
+            PlayableMatchSession session,
+            IReadOnlyList<PresentationTurn> frames,
+            Action completed)
+        {
+            if (IsReady)
+            {
+                throw new InvalidOperationException("The battle view is already initialized.");
+            }
+
+            _hostedReplaySession = session ?? throw new ArgumentNullException(nameof(session));
+            _hostedReplayFrames = frames ?? throw new ArgumentNullException(nameof(frames));
+            _hostedReplayCompletion = completed ?? throw new ArgumentNullException(nameof(completed));
+            if (frames.Count != RunState.TurnsPerRun || !session.IsComplete)
+            {
+                throw new InvalidOperationException("Only a complete recorded battle can be replayed.");
+            }
         }
 
         private void Awake()
@@ -100,7 +122,11 @@ namespace Epoch.Presentation
             {
                 string contentPath = Path.Combine(
                     UnityEngine.Application.dataPath, "..", "_aiinfodocs", "data", "epoch_v1_content.json");
-                if (_hostedGame is not null)
+                if (_hostedReplaySession is not null)
+                {
+                    _session = _hostedReplaySession;
+                }
+                else if (_hostedGame is not null)
                 {
                     _session = _hostedGame.Battle ?? throw new InvalidOperationException("The hosted battle is missing.");
                 }
@@ -112,8 +138,20 @@ namespace Epoch.Presentation
                     _session = new PlayableMatchSession(seed, _content);
                 }
                 IsReady = true;
-                RenderChoice();
-                ShowHelp();
+                if (_hostedReplayFrames is not null)
+                {
+                    _overlay.gameObject.SetActive(false);
+                    RenderState(_hostedReplayFrames[0].PreState);
+                    if (UnityEngine.Application.isPlaying)
+                    {
+                        StartCoroutine(Replay(_hostedReplayFrames));
+                    }
+                }
+                else
+                {
+                    RenderChoice();
+                    ShowHelp();
+                }
             }
             catch (Exception exception)
             {
@@ -704,7 +742,15 @@ namespace Epoch.Presentation
             _animating = false;
             _skipRequested = false;
             RenderState(_session.State);
-            ShowResult();
+            if (_hostedReplayCompletion is not null)
+            {
+                _hostedReplayCompletion();
+                Destroy(gameObject);
+            }
+            else
+            {
+                ShowResult();
+            }
         }
 
         private void SetLaneTargeting(IReadOnlyList<LaneId>? legal)

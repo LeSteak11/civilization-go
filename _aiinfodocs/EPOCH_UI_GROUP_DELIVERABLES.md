@@ -74,13 +74,13 @@ Art Producer prompts from `[Art]` items only after UX brief for that group. Grou
 ## Group 3 — Result & Rewards, replay, seed, practice
 **PM checkpoint:** 300/250/200 once; no duplicate credit; Practice visually distinct; secondaries don’t beat Continue.
 
-- [ ] `[Dev]` Eligible result credits Gold once before screen shows
-- [ ] `[Dev]` Already-credited / reopen state (no second award)
-- [ ] `[Dev]` Practice — no Gold result state
-- [ ] `[Dev]` Sticky Continue to Capital (primary)
-- [ ] `[Dev]` Replay (read-only) secondary
-- [ ] `[Dev]` Copy Seed secondary + clipboard
-- [ ] `[Dev]` Restart Same Seed = practice / no Gold secondary
+- [x] `[Dev]` Eligible result credits Gold once before screen shows
+- [x] `[Dev]` Already-credited / reopen state (no second award)
+- [x] `[Dev]` Practice — no Gold result state
+- [x] `[Dev]` Sticky Continue to Capital (primary)
+- [x] `[Dev]` Replay (read-only) secondary
+- [x] `[Dev]` Copy Seed secondary + clipboard
+- [x] `[Dev]` Restart Same Seed = practice / no Gold secondary
 - [ ] `[Art]` Result & Rewards shell — Victory
 - [ ] `[Art]` Result & Rewards shell — Tie
 - [ ] `[Art]` Result & Rewards shell — Defeat

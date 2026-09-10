@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Epoch.Application.Progression;
 using Epoch.Content.Loading;
@@ -40,6 +41,7 @@ namespace Epoch.Presentation
         private GameObject? _matchHost;
         private bool _previewResult;
         private string? _selectedLandmarkId;
+        private string _resultNotice = string.Empty;
 
         public bool IsReady { get; private set; }
 
@@ -66,6 +68,12 @@ namespace Epoch.Presentation
         public LandmarkUpgradePresentation? CurrentUpgradePresentation { get; private set; }
 
         public LandmarkUpgradeReceipt? LastUpgradeReceipt { get; private set; }
+
+        public ResultRewardsPresentation? CurrentResultPresentation { get; private set; }
+
+        public string LastCopiedSeed { get; private set; } = string.Empty;
+
+        public bool IsReplayHosted { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -334,6 +342,19 @@ namespace Epoch.Presentation
         {
             Destination = EpochShellDestination.RESULT;
             _previewResult = true;
+            _resultNotice = string.Empty;
+            RenderResult();
+        }
+
+        public void ShowResultRewards()
+        {
+            if (_game.ResultRewards is null)
+            {
+                throw new InvalidOperationException("Result & Rewards is available only after battle completion.");
+            }
+
+            Destination = EpochShellDestination.RESULT;
+            _previewResult = false;
             RenderResult();
         }
 
@@ -373,6 +394,14 @@ namespace Epoch.Presentation
         {
             SeedCode seed = new SeedCode(SeedCodec.Encode(20260908UL));
             _ = _game.StartNewBattle(seed);
+            MountHostedBattle();
+        }
+
+        private void MountHostedBattle()
+        {
+            _resultNotice = string.Empty;
+            CurrentResultPresentation = null;
+            IsReplayHosted = false;
             ShowBattlePlaceholder();
             _canvas.enabled = false;
 
@@ -381,15 +410,20 @@ namespace Epoch.Presentation
             EpochMatchController controller = _matchHost.AddComponent<EpochMatchController>();
             controller.InitializeHosted(_game, OnHostedBattleComplete);
             _matchHost.SetActive(true);
+#if UNITY_EDITOR
+            if (!UnityEngine.Application.isPlaying)
+            {
+                controller.InitializeForEditorSmoke();
+            }
+#endif
         }
 
         private void OnHostedBattleComplete()
         {
             _matchHost = null;
             _canvas.enabled = true;
-            Destination = EpochShellDestination.RESULT;
-            _previewResult = false;
-            RenderResult();
+            _resultNotice = string.Empty;
+            ShowResultRewards();
         }
 
         private void RenderResult()
@@ -398,13 +432,22 @@ namespace Epoch.Presentation
             EpochUiFactory.Clear(_destinationLayer);
             EpochUiFactory.Clear(_stickyLayer);
             ResultRewardsPresentation? result = _previewResult ? null : _game.ResultRewards;
-            string outcome = result is null ? "RESULT & REWARDS" : result.Outcome.ToString();
+            CurrentResultPresentation = result;
+            string outcome = result is null
+                ? "RESULT & REWARDS"
+                : result.RewardStatus == BattleRewardStatus.PRACTICE_NO_GOLD
+                    ? "PRACTICE · " + result.Outcome
+                    : result.Outcome.ToString();
             string score = result is null ? "SCORE  —  —" : result.PlayerScore + "  —  " + result.SnapshotScore;
             string reward = result is null
                 ? "WIREFRAME PREVIEW · NO REWARD APPLIED"
                 : result.RewardStatus == BattleRewardStatus.PRACTICE_NO_GOLD
-                    ? "PRACTICE — NO GOLD"
-                    : "+" + result.RewardGold + " GOLD · ALREADY CREDITED";
+                    ? "PRACTICE — NO GOLD\nGOLD BALANCE  " + result.GoldBalance
+                    : result.RewardStatus == BattleRewardStatus.ALREADY_CREDITED
+                        ? "ALREADY CREDITED · NO NEW GOLD\nORIGINAL REWARD  +" + result.RewardGold +
+                          " · GOLD BALANCE  " + result.GoldBalance
+                        : "+" + result.GoldCreditedNow + " GOLD · CREDITED AUTOMATICALLY\nGOLD BALANCE  " +
+                          result.GoldBalance;
             string seed = result is null ? "SEED  —" : "SEED  " + result.Seed;
 
             EpochUiFactory.Text(
@@ -418,26 +461,107 @@ namespace Epoch.Presentation
             EpochUiFactory.Text(
                 "Reward", reward + "\n" + seed,
                 _destinationLayer, _font, EpochUiTokens.TextBody, EpochUiTokens.Accent,
-                TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.06f, 0.43f), new Vector2(0.94f, 0.60f));
+                TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.06f, 0.42f), new Vector2(0.94f, 0.60f));
 
-            float buttonTop = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.39f : 0.36f;
+            if (!string.IsNullOrEmpty(_resultNotice))
+            {
+                EpochUiFactory.Text(
+                    "Result Notice", _resultNotice,
+                    _destinationLayer, _font, EpochUiTokens.TextSmall, EpochUiTokens.Player,
+                    TextAnchor.MiddleCenter, FontStyle.Bold,
+                    new Vector2(0.08f, 0.37f), new Vector2(0.92f, 0.42f));
+            }
+
+            float buttonTop = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.36f : 0.35f;
             EpochUiFactory.Button(
                 "Replay", "REPLAY · READ ONLY", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
-                () => { }, new Vector2(0.06f, buttonTop - 0.09f), new Vector2(0.47f, buttonTop), false);
+                BeginReadOnlyReplay, new Vector2(0.06f, buttonTop - 0.09f), new Vector2(0.47f, buttonTop),
+                result?.CanReplay == true);
             EpochUiFactory.Button(
                 "Copy Seed", "COPY SEED", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
-                () => { }, new Vector2(0.53f, buttonTop - 0.09f), new Vector2(0.94f, buttonTop), false);
+                CopyResultSeed, new Vector2(0.53f, buttonTop - 0.09f), new Vector2(0.94f, buttonTop),
+                result?.CanCopySeed == true);
             EpochUiFactory.Button(
                 "Practice Restart", "RESTART SAME SEED · PRACTICE / NO GOLD",
                 _destinationLayer, _font, EpochButtonStyle.QUIET,
-                () => { }, new Vector2(0.06f, buttonTop - 0.21f), new Vector2(0.94f, buttonTop - 0.12f), false);
-            StickyPrimary("CONTINUE TO CAPITAL", result is null ? ShowCapital : ContinueToCapital);
+                RestartSameSeedPractice, new Vector2(0.06f, buttonTop - 0.21f), new Vector2(0.94f, buttonTop - 0.12f),
+                result?.CanRestartSameSeedPractice == true);
+            StickyPrimary(
+                "CONTINUE TO CAPITAL",
+                result is null ? ShowCapital : ContinueToCapital,
+                result is null || result.CanContinueToCapital);
         }
 
-        private void ContinueToCapital()
+        public void ContinueToCapital()
         {
             _ = _game.ContinueToCapital();
+            CurrentResultPresentation = null;
+            _resultNotice = string.Empty;
             ShowCapital();
+        }
+
+        public void CopyResultSeed()
+        {
+            ResultRewardsPresentation result = _game.ResultRewards ??
+                throw new InvalidOperationException("Copy Seed is available only from Result & Rewards.");
+            if (!result.CanCopySeed)
+            {
+                return;
+            }
+
+            GUIUtility.systemCopyBuffer = result.Seed;
+            LastCopiedSeed = result.Seed;
+            _resultNotice = "SEED COPIED";
+            RenderResult();
+        }
+
+        public void BeginReadOnlyReplay()
+        {
+            ResultRewardsPresentation result = _game.ResultRewards ??
+                throw new InvalidOperationException("Replay is available only from Result & Rewards.");
+            if (!result.CanReplay)
+            {
+                return;
+            }
+
+            IReadOnlyList<Epoch.Application.Runs.PresentationTurn> frames = _game.ReplayTurns();
+            Epoch.Application.Runs.PlayableMatchSession session = _game.Battle ??
+                throw new InvalidOperationException("The completed battle is unavailable for replay.");
+            _canvas.enabled = false;
+            IsReplayHosted = true;
+            _matchHost = new GameObject("EPOCH · Read-Only Replay");
+            _matchHost.SetActive(false);
+            EpochMatchController controller = _matchHost.AddComponent<EpochMatchController>();
+            controller.InitializeHostedReplay(session, frames, OnHostedReplayComplete);
+            _matchHost.SetActive(true);
+#if UNITY_EDITOR
+            if (!UnityEngine.Application.isPlaying)
+            {
+                controller.InitializeForEditorSmoke();
+            }
+#endif
+        }
+
+        public void RestartSameSeedPractice()
+        {
+            ResultRewardsPresentation result = _game.ResultRewards ??
+                throw new InvalidOperationException("Practice restart is available only from Result & Rewards.");
+            if (!result.CanRestartSameSeedPractice)
+            {
+                return;
+            }
+
+            _ = _game.RestartSameSeedPractice();
+            MountHostedBattle();
+        }
+
+        private void OnHostedReplayComplete()
+        {
+            _matchHost = null;
+            _canvas.enabled = true;
+            IsReplayHosted = false;
+            _resultNotice = "READ-ONLY REPLAY COMPLETE";
+            ShowResultRewards();
         }
 
         private void ShowCapitalCompletion(LandmarkUpgradeReceipt receipt)
@@ -552,6 +676,18 @@ namespace Epoch.Presentation
             _canvas.enabled = true;
         }
 
+        public void StopHostedPresentationForEditorSmoke()
+        {
+            if (_matchHost is not null)
+            {
+                UnityEngine.Object.DestroyImmediate(_matchHost);
+                _matchHost = null;
+            }
+
+            _canvas.enabled = true;
+            IsReplayHosted = false;
+        }
+
         public void Preview(EpochShellPreviewSurface surface)
         {
             switch (surface)
@@ -588,6 +724,22 @@ namespace Epoch.Presentation
             Preview(surface);
             ApplyViewport(safeArea, width, height);
             Preview(surface);
+            CaptureCurrentCanvas(path, width, height);
+        }
+
+        public void CaptureCurrentResultForEditorSmoke(
+            string path,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            ApplyViewport(safeArea, width, height);
+            ShowResultRewards();
+            CaptureCurrentCanvas(path, width, height);
+        }
+
+        private void CaptureCurrentCanvas(string path, int width, int height)
+        {
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
             Camera? camera = FindAnyObjectByType<Camera>();

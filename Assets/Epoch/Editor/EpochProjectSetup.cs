@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Epoch.Application.Progression;
+using Epoch.Application.Runs;
 using Epoch.Core.Domain;
 using Epoch.Core.Rng;
 using Epoch.Presentation;
@@ -238,6 +239,179 @@ namespace Epoch.Editor
 
             Object.DestroyImmediate(host);
             Debug.Log("EPOCH Group 2 progression walkthrough passed. Approval captures: " + root);
+        }
+
+        public static void SmokeGroup3()
+        {
+            GameObject host = new GameObject("EPOCH Group 3 Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 3 shell failed to initialize: " + shell.StartupError);
+            }
+
+            string root = Path.GetFullPath("Logs/Group3Approval");
+            PlayableMatchSession victoryBattle = CompleteNewBattle(shell.Game, "group3-victory", "0", false);
+            string victoryHash = victoryBattle.Turns[victoryBattle.Turns.Count - 1].StateHash;
+            AssertResult(shell, MatchOutcome.VICTORY, BattleRewardStatus.CREDITED, 300, 300);
+
+            shell.CopyResultSeed();
+            if (shell.LastCopiedSeed != "0" || GUIUtility.systemCopyBuffer != "0")
+            {
+                throw new System.InvalidOperationException("Copy Seed did not write the result seed to the clipboard.");
+            }
+
+            int beforeReplayGold = shell.Game.Progression.State.Gold;
+            shell.BeginReadOnlyReplay();
+            if (!shell.IsReplayHosted || shell.Game.ResultRewards is null ||
+                shell.Game.Progression.State.Gold != beforeReplayGold || !victoryBattle.VerifyReplay() ||
+                victoryBattle.Turns[victoryBattle.Turns.Count - 1].StateHash != victoryHash)
+            {
+                throw new System.InvalidOperationException("Read-only Replay mutated or failed to mount the recorded battle.");
+            }
+
+            shell.StopHostedPresentationForEditorSmoke();
+            shell.ShowResultRewards();
+            CaptureResult(shell, root, "reference-victory", 390, 844, new Rect(0, 20, 390, 804));
+            shell.ContinueToCapital();
+            AssertContinuedToCapital(shell, 300);
+
+            _ = CompleteNewBattle(shell.Game, "group3-defeat", "2", false);
+            AssertResult(shell, MatchOutcome.DEFEAT, BattleRewardStatus.CREDITED, 200, 500);
+            CaptureResult(shell, root, "reference-defeat", 390, 844, new Rect(0, 20, 390, 804));
+            shell.ContinueToCapital();
+            AssertContinuedToCapital(shell, 500);
+
+            _ = CompleteNewBattle(shell.Game, "group3-tie", "0", true);
+            AssertResult(shell, MatchOutcome.TIE, BattleRewardStatus.CREDITED, 250, 750);
+            CaptureResult(shell, root, "reference-tie", 390, 844, new Rect(0, 20, 390, 804));
+            shell.ContinueToCapital();
+            AssertContinuedToCapital(shell, 750);
+
+            shell.Game.RestoreCompletedResult("group3-victory", victoryBattle);
+            AssertResult(shell, MatchOutcome.VICTORY, BattleRewardStatus.ALREADY_CREDITED, 300, 750);
+            if (shell.Game.ResultRewards!.GoldCreditedNow != 0)
+            {
+                throw new System.InvalidOperationException("Reopening a result exposed a duplicate Gold credit.");
+            }
+
+            CaptureResult(shell, root, "reference-already-credited", 390, 844, new Rect(0, 20, 390, 804));
+            int beforePracticeGold = shell.Game.Progression.State.Gold;
+            shell.RestartSameSeedPractice();
+            if (shell.Game.Battle is null || shell.Game.Battle.IsComplete ||
+                shell.Game.Progression.State.BattleRuns[shell.Game.Progression.State.BattleRuns.Count - 1].Eligibility !=
+                BattleRewardEligibility.PRACTICE)
+            {
+                throw new System.InvalidOperationException("Restart Same Seed did not create a hosted practice battle.");
+            }
+
+            shell.StopHostedPresentationForEditorSmoke();
+            CompleteActiveBattle(shell.Game, false);
+            AssertResult(shell, MatchOutcome.VICTORY, BattleRewardStatus.PRACTICE_NO_GOLD, 0, beforePracticeGold);
+            if (shell.Game.ResultRewards!.Seed != "0" || shell.Game.Progression.State.Gold != beforePracticeGold ||
+                shell.Game.ResultRewards.GoldCreditedNow != 0 || !shell.Game.Battle!.VerifyReplay())
+            {
+                throw new System.InvalidOperationException("Practice completion changed Gold, seed, or replay integrity.");
+            }
+
+            CaptureResult(shell, root, "reference-practice", 390, 844, new Rect(0, 20, 390, 804));
+            CaptureResult(shell, root, "short-9x16-practice", 360, 640, new Rect(0, 24, 360, 596));
+            CaptureResult(shell, root, "tall-practice", 430, 1000, new Rect(0, 44, 430, 922));
+            shell.ContinueToCapital();
+            AssertContinuedToCapital(shell, beforePracticeGold);
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 3 result/reward walkthrough passed. Approval captures: " + root);
+        }
+
+        private static PlayableMatchSession CompleteNewBattle(
+            EpochGameSession game,
+            string battleRunId,
+            string seed,
+            bool chooseLastLegal)
+        {
+            _ = game.StartNewBattle(new SeedCode(seed), battleRunId);
+            CompleteActiveBattle(game, chooseLastLegal);
+            return game.Battle!;
+        }
+
+        private static void CompleteActiveBattle(EpochGameSession game, bool chooseLastLegal)
+        {
+            while (!game.Battle!.IsComplete)
+            {
+                if (game.Battle.IsForcedPass)
+                {
+                    _ = game.SubmitForcedPass();
+                    continue;
+                }
+
+                System.Collections.Generic.IReadOnlyList<CardPresentation> cards = game.Battle.Cards();
+                int start = chooseLastLegal ? cards.Count - 1 : 0;
+                int end = chooseLastLegal ? -1 : cards.Count;
+                int step = chooseLastLegal ? -1 : 1;
+                bool submitted = false;
+                for (int i = start; i != end; i += step)
+                {
+                    CardPresentation card = cards[i];
+                    if (!card.IsLegal)
+                    {
+                        continue;
+                    }
+
+                    Epoch.Core.Domain.Selection selection = card.Definition.CardType == CardType.ADVANCE
+                        ? new Epoch.Core.Domain.Selection(card.OfferIndex, null)
+                        : new Epoch.Core.Domain.Selection(card.OfferIndex, card.LegalLanes[0]);
+                    _ = game.SubmitBattleSelection(selection);
+                    submitted = true;
+                    break;
+                }
+
+                if (!submitted)
+                {
+                    throw new System.InvalidOperationException("The result walkthrough found no legal player action.");
+                }
+            }
+        }
+
+        private static void AssertResult(
+            EpochAppShell shell,
+            MatchOutcome outcome,
+            BattleRewardStatus status,
+            int reward,
+            int goldBalance)
+        {
+            shell.ShowResultRewards();
+            ResultRewardsPresentation result = shell.CurrentResultPresentation!;
+            if (result.Outcome != outcome || result.RewardStatus != status ||
+                result.RewardGold != reward || result.GoldBalance != goldBalance ||
+                !result.CanContinueToCapital || !result.CanReplay || !result.CanCopySeed ||
+                !result.CanRestartSameSeedPractice || shell.StickyActionHeight < 56f)
+            {
+                throw new System.InvalidOperationException("Result & Rewards projection or action hierarchy is incorrect.");
+            }
+        }
+
+        private static void AssertContinuedToCapital(EpochAppShell shell, int expectedGold)
+        {
+            if (shell.Destination != EpochShellDestination.CAPITAL || shell.Game.ResultRewards is not null ||
+                shell.CurrentCapitalPresentation is null || shell.CurrentCapitalPresentation.Gold != expectedGold)
+            {
+                throw new System.InvalidOperationException("Continue to Capital did not restore the Capital projection.");
+            }
+        }
+
+        private static void CaptureResult(
+            EpochAppShell shell,
+            string root,
+            string name,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            shell.CaptureCurrentResultForEditorSmoke(
+                Path.Combine(root, name + ".png"), width, height, safeArea);
         }
 
         private static void AwardVictoryGold(ProgressionService progression, int battleCount)
