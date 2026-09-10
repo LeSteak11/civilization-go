@@ -79,3 +79,21 @@ MJ upgrade-modal batch FAIL (ornamental carved panels / face motif — not funct
 ## 2026-09-10 — Upgrade modal chrome PASS
 
 ChatGPT flat UI kit PASS. Write `Assets/EPOCH_Visuals/02_UI/Modal/upgrade_modal_chrome.png`. System panel; NavyWire/NavyMid; GoldWire thin edges; SandBase/Ochre CTA; layout DNA complete.
+
+**Written:** `upgrade_modal_chrome.png` on Dojo. Next: Capital Complete / World Complete modal states (same chrome DNA).
+
+
+## 2026-09-10 — Capital Complete modal PASS
+
+Write `Assets/EPOCH_Visuals/02_UI/Modal/capital_complete_modal.png`. Same chrome DNA + celebration-lite. Next: World Complete modal state.
+
+**Written:** `capital_complete_modal.png`. World Complete in flight.
+
+
+## 2026-09-10 — World Complete modal PASS
+
+Write `Assets/EPOCH_Visuals/02_UI/Modal/world_complete_modal.png`. Same chrome DNA; celebration-lite bump vs Capital Complete.
+
+## 2026-09-10 — World Complete written; G2 core art closed
+
+**Written:** `world_complete_modal.png`. Art Producer G2 core track closed (stage 0–5, Gold, upgrade/capital/world modals). Slot frame / progress meter / Battle CTA = UI kit/Dev unless PM asks. Capital scene placeholder optional last art beat if user continues.

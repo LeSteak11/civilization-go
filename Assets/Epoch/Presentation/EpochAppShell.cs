@@ -71,6 +71,8 @@ namespace Epoch.Presentation
 
         public ResultRewardsPresentation? CurrentResultPresentation { get; private set; }
 
+        public WorldProgressionPresentation? CurrentWorldPresentation { get; private set; }
+
         public string LastCopiedSeed { get; private set; } = string.Empty;
 
         public bool IsReplayHosted { get; private set; }
@@ -282,6 +284,7 @@ namespace Epoch.Presentation
         public void OpenWorld()
         {
             WorldProgressionPresentation state = _game.WorldProgression();
+            CurrentWorldPresentation = state;
             CloseOverlay();
             IsSheetOpen = true;
             _overlayLayer.gameObject.SetActive(true);
@@ -296,8 +299,9 @@ namespace Epoch.Presentation
                 "Sheet Handle", sheet, EpochUiTokens.TextMuted,
                 new Vector2(0.42f, 0.955f), new Vector2(0.58f, 0.97f));
             handle.GetComponent<Image>().raycastTarget = false;
+            string sheetTitle = state.IsWorldComplete ? "WORLD COMPLETE" : "WORLD PROGRESSION";
             EpochUiFactory.Text(
-                "Sheet Title", "WORLD PROGRESSION",
+                "Sheet Title", sheetTitle,
                 sheet, _font, EpochUiTokens.TextHeading, EpochUiTokens.Text,
                 TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0.05f, 0.82f), new Vector2(0.72f, 0.95f));
             EpochUiFactory.Button(
@@ -311,15 +315,32 @@ namespace Epoch.Presentation
                 CapitalWorldPresentation capital = state.Capitals[i];
                 float yMax = 1f - i * 0.30f;
                 float yMin = yMax - 0.25f;
-                string status = capital.IsCompleted ? "COMPLETE" : capital.IsUnlocked ? "IN PROGRESS" : "LOCKED";
+                string status = !capital.IsUnlocked
+                    ? "LOCKED"
+                    : capital.IsCompleted
+                        ? "COMPLETE"
+                        : capital.IsCurrent
+                            ? "CURRENT"
+                            : "IN PROGRESS";
+                string id = capital.CapitalId;
+                bool unlocked = capital.IsUnlocked;
                 EpochUiFactory.Button(
                     "World Capital " + (i + 1),
                     "CAPITAL " + (i + 1) + "     " + status + "     " + capital.CompletedUpgradeCount + "/25",
                     content, _font, EpochButtonStyle.SECONDARY,
-                    () => { }, new Vector2(0f, yMin), new Vector2(1f, yMax),
-                    capital.IsUnlocked, capital.IsCurrent);
+                    () => SelectWorldCapital(id), new Vector2(0f, yMin), new Vector2(1f, yMax),
+                    unlocked, capital.IsCurrent);
             }
         }
+
+        public void SelectWorldCapital(string capitalId)
+        {
+            _game.SelectCapital(capitalId);
+            CloseOverlay();
+            ShowCapital();
+        }
+
+        public void OpenWorldForEditor() => OpenWorld();
 
         public void ShowBattlePlaceholder()
         {
@@ -360,12 +381,17 @@ namespace Epoch.Presentation
 
         public void DismissOverlay()
         {
-            if (!IsModalOpen && !IsSheetOpen)
+            if (!IsModalOpen && !IsSheetOpen && !IsCapitalCompletionOpen)
             {
                 return;
             }
 
+            bool wasCapitalCompletion = IsCapitalCompletionOpen;
             CloseOverlay();
+            if (wasCapitalCompletion)
+            {
+                ShowCapital();
+            }
         }
 
         private void BuildShell()
@@ -568,18 +594,21 @@ namespace Epoch.Presentation
         {
             CloseOverlay();
             IsCapitalCompletionOpen = true;
+            LastUpgradeReceipt = receipt;
             _overlayLayer.gameObject.SetActive(true);
             _ = EpochUiFactory.Panel(
                 "Overlay Dimmer", _overlayLayer, EpochUiTokens.Dimmer, Vector2.zero, Vector2.one);
             RectTransform modal = EpochUiFactory.Panel(
                 "Capital Completion", _overlayLayer, EpochUiTokens.SurfaceRaised,
                 new Vector2(0.08f, 0.25f), new Vector2(0.92f, 0.75f));
-            string next = receipt.UnlockedCapitalId is null
-                ? "WORLD COMPLETE · PLACEHOLDER"
+            bool worldComplete = receipt.UnlockedCapitalId is null;
+            string next = worldComplete
+                ? "WORLD COMPLETE\nALL CAPITALS REVISITABLE VIA WORLD"
                 : "UNLOCKED + AUTO-FOCUSED\n" + receipt.UnlockedCapitalId;
+            string headline = worldComplete ? "WORLD COMPLETE" : "CAPITAL COMPLETE";
             EpochUiFactory.Text(
                 "Completion Summary",
-                "CAPITAL COMPLETE\n\n+" + receipt.CompletionGoldAwarded + " GOLD\n\n" + next +
+                headline + "\n\n+" + receipt.CompletionGoldAwarded + " GOLD\n\n" + next +
                 "\n\nBALANCE  " + receipt.GoldBalance + " GOLD",
                 modal, _font, EpochUiTokens.TextHeading, EpochUiTokens.Text,
                 TextAnchor.MiddleCenter, FontStyle.Bold,
@@ -735,6 +764,34 @@ namespace Epoch.Presentation
         {
             ApplyViewport(safeArea, width, height);
             ShowResultRewards();
+            CaptureCurrentCanvas(path, width, height);
+        }
+
+        public void CaptureWorldForEditorSmoke(
+            string path,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            ApplyViewport(safeArea, width, height);
+            OpenWorld();
+            CaptureCurrentCanvas(path, width, height);
+        }
+
+        public void CaptureCapitalCompletionForEditorSmoke(
+            string path,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            if (LastUpgradeReceipt is null || !LastUpgradeReceipt.CapitalCompleted)
+            {
+                throw new InvalidOperationException("Capital completion capture requires a completion receipt.");
+            }
+
+            ApplyViewport(safeArea, width, height);
+            ShowCapital();
+            ShowCapitalCompletion(LastUpgradeReceipt);
             CaptureCurrentCanvas(path, width, height);
         }
 

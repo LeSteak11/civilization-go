@@ -326,6 +326,208 @@ namespace Epoch.Editor
             Debug.Log("EPOCH Group 3 result/reward walkthrough passed. Approval captures: " + root);
         }
 
+        public static void SmokeGroup4()
+        {
+            GameObject host = new GameObject("EPOCH Group 4 Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 4 shell failed to initialize: " + shell.StartupError);
+            }
+
+            CapitalHomePresentation initial = shell.CurrentCapitalPresentation!;
+            if (initial.CurrentCapitalId != "capital_01" || shell.Destination != EpochShellDestination.CAPITAL ||
+                shell.StickyActionHeight < 56f)
+            {
+                throw new System.InvalidOperationException(
+                    "Fresh shell must start on capital_01 with sticky CAPITAL actions.");
+            }
+
+            shell.OpenWorldForEditor();
+            WorldProgressionPresentation world = shell.CurrentWorldPresentation!;
+            if (world.Capitals.Count != 3 || world.IsWorldComplete ||
+                !world.Capitals[0].IsUnlocked || !world.Capitals[0].IsCurrent || world.Capitals[0].IsCompleted ||
+                world.Capitals[1].IsUnlocked || world.Capitals[2].IsUnlocked || !shell.IsSheetOpen)
+            {
+                throw new System.InvalidOperationException(
+                    "Fresh World sheet must show capital_01 current and capitals 02/03 locked.");
+            }
+
+            bool lockedRejected = false;
+            try
+            {
+                shell.Game.SelectCapital("capital_02");
+            }
+            catch (System.InvalidOperationException)
+            {
+                lockedRejected = true;
+            }
+
+            if (!lockedRejected)
+            {
+                throw new System.InvalidOperationException("Locked capital selection must be rejected.");
+            }
+
+            shell.DismissOverlay();
+            string root = Path.GetFullPath("Logs/Group4Approval");
+            shell.CaptureWorldForEditorSmoke(
+                Path.Combine(root, "reference-world-locked.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+            shell.DismissOverlay();
+
+            // Cap1=1000, Cap2=1750, Cap3=2500; completion returns 250/350/500.
+            // Need start gold >= 4650; 16 victories * 300 = 4800.
+            AwardVictoryGold(shell.Game.Progression, 16);
+            shell.ShowCapital();
+
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            LandmarkUpgradeReceipt capital1 = shell.LastUpgradeReceipt!;
+            CapitalHomePresentation after1 = shell.CurrentCapitalPresentation!;
+            if (!capital1.CapitalCompleted || capital1.CompletionGoldAwarded != 250 ||
+                capital1.UnlockedCapitalId != "capital_02" || after1.CurrentCapitalId != "capital_02" ||
+                !shell.IsCapitalCompletionOpen)
+            {
+                throw new System.InvalidOperationException(
+                    "Capital 01 completion must award 250, unlock capital_02, and auto-focus.");
+            }
+
+            shell.CaptureCapitalCompletionForEditorSmoke(
+                Path.Combine(root, "reference-capital01-complete.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+            shell.DismissOverlay();
+            if (shell.IsCapitalCompletionOpen || shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_02")
+            {
+                throw new System.InvalidOperationException(
+                    "CONTINUE must leave the player on the auto-focused capital.");
+            }
+
+            shell.OpenWorld();
+            WorldProgressionPresentation mid = shell.CurrentWorldPresentation!;
+            if (!mid.Capitals[0].IsCompleted || !mid.Capitals[0].IsUnlocked ||
+                !mid.Capitals[1].IsUnlocked || !mid.Capitals[1].IsCurrent || mid.Capitals[2].IsUnlocked)
+            {
+                throw new System.InvalidOperationException(
+                    "After capital_01, World must show completed revisitable 01 and current unlocked 02.");
+            }
+
+            shell.SelectWorldCapital("capital_01");
+            if (shell.Destination != EpochShellDestination.CAPITAL ||
+                shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_01" ||
+                !shell.CurrentCapitalPresentation.IsCapitalCompleted || shell.IsSheetOpen)
+            {
+                throw new System.InvalidOperationException(
+                    "Completed capital_01 must be revisitable as a read-only capital placeholder.");
+            }
+
+            shell.SelectWorldCapital("capital_02");
+            if (shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_02" ||
+                shell.CurrentCapitalPresentation.IsCapitalCompleted)
+            {
+                throw new System.InvalidOperationException("Selecting capital_02 must restore the in-progress focus.");
+            }
+
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            LandmarkUpgradeReceipt capital2 = shell.LastUpgradeReceipt!;
+            if (!capital2.CapitalCompleted || capital2.CompletionGoldAwarded != 350 ||
+                capital2.UnlockedCapitalId != "capital_03" ||
+                shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_03" ||
+                !shell.IsCapitalCompletionOpen)
+            {
+                throw new System.InvalidOperationException(
+                    "Capital 02 completion must award 350, unlock capital_03, and auto-focus.");
+            }
+
+            shell.DismissOverlay();
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            LandmarkUpgradeReceipt capital3 = shell.LastUpgradeReceipt!;
+            WorldProgressionPresentation finished = shell.Game.WorldProgression();
+            if (!capital3.CapitalCompleted || capital3.CompletionGoldAwarded != 500 ||
+                capital3.UnlockedCapitalId is not null || !finished.IsWorldComplete ||
+                !shell.IsCapitalCompletionOpen)
+            {
+                throw new System.InvalidOperationException(
+                    "Capital 03 completion must award 500, leave UnlockedCapitalId null, and mark World Complete.");
+            }
+
+            shell.CaptureCapitalCompletionForEditorSmoke(
+                Path.Combine(root, "reference-world-complete.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+            shell.DismissOverlay();
+            if (shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_03")
+            {
+                throw new System.InvalidOperationException(
+                    "World Complete CONTINUE should remain on the final capital focus.");
+            }
+
+            shell.OpenWorld();
+            WorldProgressionPresentation revisit = shell.CurrentWorldPresentation!;
+            if (!revisit.IsWorldComplete || revisit.Capitals.Count != 3 ||
+                !revisit.Capitals[0].IsCompleted || !revisit.Capitals[1].IsCompleted ||
+                !revisit.Capitals[2].IsCompleted ||
+                !revisit.Capitals[0].IsUnlocked || !revisit.Capitals[1].IsUnlocked ||
+                !revisit.Capitals[2].IsUnlocked)
+            {
+                throw new System.InvalidOperationException(
+                    "After World Complete, all three capitals must remain unlocked and revisitable.");
+            }
+
+            shell.CaptureWorldForEditorSmoke(
+                Path.Combine(root, "reference-world-revisitable.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+            shell.CaptureWorldForEditorSmoke(
+                Path.Combine(root, "short-9x16-world-revisitable.png"),
+                360, 640, new Rect(0, 24, 360, 596));
+            shell.CaptureWorldForEditorSmoke(
+                Path.Combine(root, "tall-world-revisitable.png"),
+                430, 1000, new Rect(0, 44, 430, 922));
+
+            shell.SelectWorldCapital("capital_01");
+            shell.SelectWorldCapital("capital_02");
+            shell.SelectWorldCapital("capital_03");
+            if (shell.Destination != EpochShellDestination.CAPITAL ||
+                shell.CurrentCapitalPresentation!.CurrentCapitalId != "capital_03" ||
+                shell.StickyActionHeight < 56f)
+            {
+                throw new System.InvalidOperationException(
+                    "Post-world-complete revisits must keep CAPITAL destination and sticky actions.");
+            }
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 4 world progression walkthrough passed. Approval captures: " + root);
+        }
+
+        private static void CompleteAllLandmarksOnCurrentCapital(EpochAppShell shell)
+        {
+            for (int landmark = 0; landmark < ProgressionCatalog.LandmarkIds.Count; landmark++)
+            {
+                shell.OpenUpgrade(ProgressionCatalog.LandmarkIds[landmark]);
+                for (int stage = 0; stage < 5; stage++)
+                {
+                    LandmarkUpgradePresentation before = shell.CurrentUpgradePresentation!;
+                    if (!before.CanUpgrade)
+                    {
+                        throw new System.InvalidOperationException(
+                            "Expected an affordable upgrade on " + before.LandmarkId + " stage " + before.Stage + ".");
+                    }
+
+                    shell.ConfirmUpgrade();
+                }
+
+                if (landmark < ProgressionCatalog.LandmarkIds.Count - 1)
+                {
+                    if (shell.IsCapitalCompletionOpen)
+                    {
+                        throw new System.InvalidOperationException(
+                            "Capital completion opened before the final landmark finished.");
+                    }
+
+                    shell.DismissOverlay();
+                }
+            }
+        }
+
         private static PlayableMatchSession CompleteNewBattle(
             EpochGameSession game,
             string battleRunId,
