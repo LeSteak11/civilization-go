@@ -1,14 +1,30 @@
 Assets/
 └── EPOCH_Visuals/
-    ├── Board/
-    ├── Objectives/
-    ├── Units/
-    ├── Structures/
-    ├── Cards/
-    ├── Resources/
-    ├── CombatFX/
-    ├── MovementFX/
-    ├── AgeProgression/
-    ├── HUD/
-    ├── Results/
-    └── GlobalPolish/
+    ├── 00_SharedFoundations/
+    │   ├── ArtDirection/
+    │   ├── ResponsiveWireframes/
+    │   ├── Typography/
+    │   ├── Icons/
+    │   └── UISurfaces/
+    ├── 01_BattleBoard/
+    │   ├── Board/
+    │   ├── Objectives/
+    │   ├── Units/
+    │   ├── Structures/
+    │   ├── Cards/
+    │   ├── Resources/
+    │   ├── Feedback/
+    │   └── HUD/
+    ├── 02_CapitalBoard/
+    │   ├── CapitalScenes/
+    │   ├── Landmarks/
+    │   ├── UpgradeModal/
+    │   └── Completion/
+    ├── 03_WorldAndRewards/
+    │   ├── ResultRewards/
+    │   ├── PracticeReplaySeed/
+    │   ├── WorldSheet/
+    │   └── CapitalUnlocks/
+    └── 90_ApprovalCaptures/
+
+Existing numbered folders remain valid source locations until their contents move during an approved implementation group. Do not bulk-migrate or rename assets during planning.

@@ -1,3 +1,5 @@
+> **Status:** Legacy battle-first inventory, superseded for scope and production order by `_aiinfodocs/EPOCH_VISUAL_PRODUCTION_PLAN.md`. Preserve this checklist as source inventory only; do not begin unchecked final assets without the newer plan's PM checkpoint.
+
 \# EPOCH — Master Visual Deliverables
 
 

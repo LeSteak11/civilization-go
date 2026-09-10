@@ -19,12 +19,13 @@ Authority is subject-specific. Use the first applicable source for the subject i
 1. `_aiinfodocs/EPOCH_PRODUCT_DIRECTION.md` — authoritative outer product loop, board vocabulary, and progression/battle boundary
 2. `_aiinfodocs/EPOCH_CAPITAL_PROGRESSION_CONTRACT.md` — authoritative persistent Gold, rewards, landmarks, capital completion, world unlocking, and progression fairness
 3. `_aiinfodocs/EPOCH_UI_FLOW_AND_RESPONSIVE_CONTRACT.md` — authoritative screen responsibilities, navigation, and portrait responsive behavior
-4. `_aiinfodocs/EPOCH_Core_Gameplay_Spec_v1.md` — authoritative V1 battle simulation behaviour (rules `1.2.0-v1-final`)
-5. `_aiinfodocs/data/epoch_v1_content.json` — authoritative prototype battle content (`1.0.1-v1`)
-6. `_aiinfodocs/EPOCH_V1_Content_Manifest.md` — human-readable content rationale
-7. `_aiinfodocs/EPOCH_V1_Balance_Report.md` — **observational evidence only**
-8. `_aiinfodocs/EPOCH-master-reference.md` — legacy design authority only where the subject-specific sources above are silent
-9. `_aiinfodocs/hooked-player-playbook.md` — supporting research only
+4. `_aiinfodocs/EPOCH_VISUAL_PRODUCTION_PLAN.md` — authoritative visual families, deliverable classification, production order, and UI-group checkpoints
+5. `_aiinfodocs/EPOCH_Core_Gameplay_Spec_v1.md` — authoritative V1 battle simulation behaviour (rules `1.2.0-v1-final`)
+6. `_aiinfodocs/data/epoch_v1_content.json` — authoritative prototype battle content (`1.0.1-v1`)
+7. `_aiinfodocs/EPOCH_V1_Content_Manifest.md` — human-readable content rationale
+8. `_aiinfodocs/EPOCH_V1_Balance_Report.md` — **observational evidence only**
+9. `_aiinfodocs/EPOCH-master-reference.md` — legacy design authority only where the subject-specific sources above are silent
+10. `_aiinfodocs/hooked-player-playbook.md` — supporting research only
 
 The Node simulator under `_aiinfodocs/simulation` is a **reference oracle**, never runtime
 code. Where oracle and specification disagree, the specification wins.
