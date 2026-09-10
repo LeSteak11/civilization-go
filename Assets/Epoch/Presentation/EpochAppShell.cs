@@ -39,6 +39,7 @@ namespace Epoch.Presentation
         private EpochGameSession _game = null!;
         private GameObject? _matchHost;
         private bool _previewResult;
+        private string? _selectedLandmarkId;
 
         public bool IsReady { get; private set; }
 
@@ -52,11 +53,19 @@ namespace Epoch.Presentation
 
         public bool IsSheetOpen { get; private set; }
 
+        public bool IsCapitalCompletionOpen { get; private set; }
+
         public float StickyActionHeight => EpochUiTokens.PrimaryActionHeight;
 
         public Rect AppliedSafeArea => _safeArea.LastSafeArea;
 
         public EpochGameSession Game => _game;
+
+        public CapitalHomePresentation? CurrentCapitalPresentation { get; private set; }
+
+        public LandmarkUpgradePresentation? CurrentUpgradePresentation { get; private set; }
+
+        public LandmarkUpgradeReceipt? LastUpgradeReceipt { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
@@ -137,6 +146,7 @@ namespace Epoch.Presentation
             EpochUiFactory.Clear(_destinationLayer);
             EpochUiFactory.Clear(_stickyLayer);
             CapitalHomePresentation state = _game.CapitalHome();
+            CurrentCapitalPresentation = state;
 
             float compact = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.05f : 0f;
             RectTransform header = EpochUiFactory.Panel(
@@ -166,11 +176,15 @@ namespace Epoch.Presentation
                 LandmarkPresentation landmark = state.Landmarks[i];
                 float yMax = top - i * rowHeight;
                 float yMin = yMax - rowHeight + 0.012f;
-                string cost = landmark.NextCost.HasValue ? " · NEXT " + landmark.NextCost.Value + " GOLD" : " · COMPLETE";
+                string status = landmark.Stage == 5
+                    ? "COMPLETE"
+                    : landmark.CanAffordNextStage
+                        ? "READY · " + landmark.NextCost + " GOLD"
+                        : "NEED " + landmark.NextCost + " GOLD";
                 string id = landmark.LandmarkId;
                 EpochUiFactory.Button(
                     "Landmark " + (i + 1),
-                    "LANDMARK " + (i + 1) + "     STAGE " + landmark.Stage + "/5" + cost,
+                    "LANDMARK " + (i + 1) + "     STAGE " + landmark.Stage + "/5     " + status,
                     _destinationLayer, _font, EpochButtonStyle.SECONDARY,
                     () => OpenUpgrade(id), new Vector2(0.04f, yMin), new Vector2(0.96f, yMax),
                     true, landmark.Stage == 5);
@@ -178,16 +192,22 @@ namespace Epoch.Presentation
 
             EpochUiFactory.Text(
                 "Capital Placeholder",
-                "WIREFRAME CAPITAL VIEW\nScene art and landmark polish begin in Group 2.",
+                state.IsCapitalCompleted
+                    ? (_game.WorldProgression().IsWorldComplete
+                        ? "WORLD COMPLETE · FUNCTIONAL PLACEHOLDER"
+                        : "COMPLETED CAPITAL · FUNCTIONAL PLACEHOLDER")
+                    : "WIREFRAME CAPITAL VIEW\nFINISHED CAPITAL AND LANDMARK ART DEFERRED",
                 _destinationLayer, _font, EpochUiTokens.TextSmall, EpochUiTokens.TextMuted,
                 TextAnchor.MiddleCenter, FontStyle.Normal, new Vector2(0.08f, 0.02f), new Vector2(0.92f, 0.13f));
-            StickyPrimary("START NEW BATTLE", StartBattle);
+            StickyPrimary("START NEW BATTLE", StartBattle, state.CanStartNewBattle);
         }
 
         public void OpenUpgrade(string landmarkId)
         {
             LandmarkUpgradePresentation state = _game.LandmarkUpgrade(landmarkId);
             CloseOverlay();
+            _selectedLandmarkId = landmarkId;
+            CurrentUpgradePresentation = state;
             IsModalOpen = true;
             _overlayLayer.gameObject.SetActive(true);
             RectTransform dimmer = EpochUiFactory.Panel("Overlay Dimmer", _overlayLayer, EpochUiTokens.Dimmer, Vector2.zero, Vector2.one);
@@ -205,17 +225,50 @@ namespace Epoch.Presentation
                 "Modal Body Scroll", modal, new Vector2(0.06f, 0.23f), new Vector2(0.94f, 0.80f), out RectTransform body);
             EpochUiFactory.Text(
                 "Modal Body",
-                state.LandmarkId + "\n\nSTAGE " + state.Stage + " / 5\n\nNEXT COST  " +
-                (state.NextCost.HasValue ? state.NextCost.Value + " GOLD" : "COMPLETE") +
-                "\n\nBALANCE  " + state.Gold + " GOLD\n\nWIREFRAME BODY · SCROLL REGION",
+                state.LandmarkId + "\n\nSTAGE " + state.Stage + " / 5" +
+                (state.IsComplete ? "\n\nLANDMARK COMPLETE" :
+                    "\n\nNEXT STAGE  " + (state.Stage + 1) + " / 5" +
+                    "\n\nCOST  " + state.NextCost + " GOLD" +
+                    "\n\nBALANCE  " + state.Gold + " → " +
+                    (state.GoldAfterUpgrade.HasValue ? state.GoldAfterUpgrade.Value.ToString() : "INSUFFICIENT") + " GOLD") +
+                "\n\nWIREFRAME UPGRADE PREVIEW",
                 body, _font, EpochUiTokens.TextBody, EpochUiTokens.Text,
                 TextAnchor.UpperCenter, FontStyle.Normal, Vector2.zero, Vector2.one);
             EpochUiFactory.Button(
                 "Close Modal", "CLOSE", modal, _font, EpochButtonStyle.SECONDARY,
                 DismissOverlay, new Vector2(0.05f, 0.05f), new Vector2(0.39f, 0.19f));
             EpochUiFactory.Button(
-                "Upgrade Placeholder", "UPGRADE · GROUP 2", modal, _font, EpochButtonStyle.PRIMARY,
-                () => { }, new Vector2(0.42f, 0.05f), new Vector2(0.95f, 0.19f), false);
+                "Confirm Upgrade",
+                state.IsComplete ? "COMPLETE" : "UPGRADE · " + state.NextCost + " GOLD",
+                modal, _font, EpochButtonStyle.PRIMARY,
+                ConfirmUpgrade, new Vector2(0.42f, 0.05f), new Vector2(0.95f, 0.19f), state.CanUpgrade);
+        }
+
+        public void ConfirmUpgrade()
+        {
+            if (_selectedLandmarkId is null)
+            {
+                return;
+            }
+
+            LandmarkUpgradePresentation state = _game.LandmarkUpgrade(_selectedLandmarkId);
+            if (!state.CanUpgrade)
+            {
+                return;
+            }
+
+            string landmarkId = _selectedLandmarkId;
+            LandmarkUpgradeReceipt receipt = _game.UpgradeLandmark(landmarkId);
+            LastUpgradeReceipt = receipt;
+            ShowCapital();
+            if (receipt.CapitalCompleted)
+            {
+                ShowCapitalCompletion(receipt);
+            }
+            else
+            {
+                OpenUpgrade(landmarkId);
+            }
         }
 
         public void OpenWorld()
@@ -387,18 +440,49 @@ namespace Epoch.Presentation
             ShowCapital();
         }
 
-        private void StickyPrimary(string label, UnityEngine.Events.UnityAction action)
+        private void ShowCapitalCompletion(LandmarkUpgradeReceipt receipt)
+        {
+            CloseOverlay();
+            IsCapitalCompletionOpen = true;
+            _overlayLayer.gameObject.SetActive(true);
+            _ = EpochUiFactory.Panel(
+                "Overlay Dimmer", _overlayLayer, EpochUiTokens.Dimmer, Vector2.zero, Vector2.one);
+            RectTransform modal = EpochUiFactory.Panel(
+                "Capital Completion", _overlayLayer, EpochUiTokens.SurfaceRaised,
+                new Vector2(0.08f, 0.25f), new Vector2(0.92f, 0.75f));
+            string next = receipt.UnlockedCapitalId is null
+                ? "WORLD COMPLETE · PLACEHOLDER"
+                : "UNLOCKED + AUTO-FOCUSED\n" + receipt.UnlockedCapitalId;
+            EpochUiFactory.Text(
+                "Completion Summary",
+                "CAPITAL COMPLETE\n\n+" + receipt.CompletionGoldAwarded + " GOLD\n\n" + next +
+                "\n\nBALANCE  " + receipt.GoldBalance + " GOLD",
+                modal, _font, EpochUiTokens.TextHeading, EpochUiTokens.Text,
+                TextAnchor.MiddleCenter, FontStyle.Bold,
+                new Vector2(0.07f, 0.24f), new Vector2(0.93f, 0.94f));
+            EpochUiFactory.Button(
+                "Dismiss Completion", "CONTINUE", modal, _font, EpochButtonStyle.PRIMARY,
+                DismissOverlay, new Vector2(0.08f, 0.06f), new Vector2(0.92f, 0.22f));
+        }
+
+        private void StickyPrimary(
+            string label,
+            UnityEngine.Events.UnityAction action,
+            bool interactable = true)
         {
             EpochUiFactory.Button(
                 "Primary Sticky Action", label,
                 _stickyLayer, _font, EpochButtonStyle.PRIMARY, action,
-                Vector2.zero, Vector2.one);
+                Vector2.zero, Vector2.one, interactable);
         }
 
         private void CloseOverlay()
         {
             IsModalOpen = false;
             IsSheetOpen = false;
+            IsCapitalCompletionOpen = false;
+            _selectedLandmarkId = null;
+            CurrentUpgradePresentation = null;
             EpochUiFactory.Clear(_overlayLayer);
             _overlayLayer.gameObject.SetActive(false);
         }

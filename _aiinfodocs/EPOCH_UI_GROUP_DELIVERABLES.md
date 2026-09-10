@@ -47,14 +47,14 @@ Art Producer prompts from `[Art]` items only after UX brief for that group. Grou
 ## Group 2 — Capital/Home + Landmark Upgrade modal
 **PM checkpoint:** Capital → upgrade/bank → Battle entry; 25th-upgrade completion; stage readability before unique landmark art.
 
-- [ ] `[Dev]` Bind Capital/Home to progression Gold balance
-- [ ] `[Dev]` Bind five landmark slots (stages 0..5)
-- [ ] `[Dev]` Landmark affordability / unaffordable states
-- [ ] `[Dev]` Banked Gold (Battle CTA available with unspent Gold)
-- [ ] `[Dev]` Upgrade modal bind (cost, before/after stage, confirm/cancel)
-- [ ] `[Dev]` Capital-complete modal state + completion Gold once
-- [ ] `[Dev]` Auto-focus newly unlocked capital
-- [ ] `[Dev]` World Complete end-state hook (placeholder OK)
+- [x] `[Dev]` Bind Capital/Home to progression Gold balance
+- [x] `[Dev]` Bind five landmark slots (stages 0..5)
+- [x] `[Dev]` Landmark affordability / unaffordable states
+- [x] `[Dev]` Banked Gold (Battle CTA available with unspent Gold)
+- [x] `[Dev]` Upgrade modal bind (cost, before/after stage, confirm/cancel)
+- [x] `[Dev]` Capital-complete modal state + completion Gold once
+- [x] `[Dev]` Auto-focus newly unlocked capital
+- [x] `[Dev]` World Complete end-state hook (placeholder OK)
 - [ ] `[Art]` Capital/Home layout illustration system (placeholder identity OK)
 - [ ] `[Art]` Landmark stage language — stage 0
 - [ ] `[Art]` Landmark stage language — stage 1
