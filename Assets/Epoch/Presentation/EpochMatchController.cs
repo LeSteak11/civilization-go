@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using Epoch.Application.Progression;
 using Epoch.Application.Runs;
 using Epoch.Content.Loading;
 using Epoch.Core.Content;
@@ -58,18 +59,22 @@ namespace Epoch.Presentation
         private float _speed = 1f;
         private Coroutine? _forcedPassRoutine;
         private Sprite? _circleSprite;
+        private EpochGameSession? _hostedGame;
+        private Action? _hostedCompletion;
 
         public bool IsReady { get; private set; }
 
         public string StartupError { get; private set; } = string.Empty;
 
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
-        private static void Bootstrap()
+        public void InitializeHosted(EpochGameSession game, Action completed)
         {
-            if (FindAnyObjectByType<EpochMatchController>() is null)
+            if (IsReady)
             {
-                new GameObject("EPOCH · M4").AddComponent<EpochMatchController>();
+                throw new InvalidOperationException("The battle view is already initialized.");
             }
+
+            _hostedGame = game ?? throw new ArgumentNullException(nameof(game));
+            _hostedCompletion = completed ?? throw new ArgumentNullException(nameof(completed));
         }
 
         private void Awake()
@@ -95,10 +100,17 @@ namespace Epoch.Presentation
             {
                 string contentPath = Path.Combine(
                     UnityEngine.Application.dataPath, "..", "_aiinfodocs", "data", "epoch_v1_content.json");
-                _content = ContentLoader.Load(
-                    File.ReadAllText(Path.GetFullPath(contentPath)), RunFactory.RulesVersion);
-                SeedCode seed = new SeedCode(SeedCodec.Encode(20260908UL));
-                _session = new PlayableMatchSession(seed, _content);
+                if (_hostedGame is not null)
+                {
+                    _session = _hostedGame.Battle ?? throw new InvalidOperationException("The hosted battle is missing.");
+                }
+                else
+                {
+                    _content = ContentLoader.Load(
+                        File.ReadAllText(Path.GetFullPath(contentPath)), RunFactory.RulesVersion);
+                    SeedCode seed = new SeedCode(SeedCodec.Encode(20260908UL));
+                    _session = new PlayableMatchSession(seed, _content);
+                }
                 IsReady = true;
                 RenderChoice();
                 ShowHelp();
@@ -464,7 +476,11 @@ namespace Epoch.Presentation
         private void Resolve(Selection selection)
         {
             _selectedOffer = null;
-            PresentationTurn turn = _session.Submit(selection);
+            PresentationTurn turn = _hostedGame is null
+                ? _session.Submit(selection)
+                : selection.IsPass
+                    ? _hostedGame.SubmitForcedPass()
+                    : _hostedGame.SubmitBattleSelection(selection);
             StartCoroutine(PlayTurn(turn));
         }
 
@@ -521,7 +537,15 @@ namespace Epoch.Presentation
 
             if (_session.IsComplete)
             {
-                ShowResult();
+                if (_hostedCompletion is not null)
+                {
+                    _hostedCompletion();
+                    Destroy(gameObject);
+                }
+                else
+                {
+                    ShowResult();
+                }
             }
             else
             {

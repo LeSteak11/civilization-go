@@ -46,5 +46,92 @@ namespace Epoch.Editor
             Object.DestroyImmediate(host);
             Debug.Log("EPOCH M4 presentation smoke passed: content loaded and the portrait UI initialized.");
         }
+
+        public static void SmokeGroup1()
+        {
+            GameObject host = new GameObject("EPOCH Group 1 Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 1 shell failed to initialize: " + shell.StartupError);
+            }
+
+            if (EpochUiTokens.ProfileFor(390, 844) != EpochResponsiveProfile.REFERENCE ||
+                EpochUiTokens.ProfileFor(360, 640) != EpochResponsiveProfile.SHORT ||
+                EpochUiTokens.ProfileFor(430, 1000) != EpochResponsiveProfile.TALL)
+            {
+                throw new System.InvalidOperationException("Responsive profile classification failed.");
+            }
+
+            if (shell.StickyActionHeight < EpochUiTokens.PrimaryActionHeight)
+            {
+                throw new System.InvalidOperationException("Sticky primary action is below the 56pt contract.");
+            }
+
+            string root = Path.GetFullPath("Logs/Group1Approval");
+            CaptureProfile(shell, root, "reference", 390, 844, new Rect(0, 20, 390, 804));
+            CaptureProfile(shell, root, "short-9x16", 360, 640, new Rect(0, 24, 360, 596));
+            CaptureProfile(shell, root, "tall", 430, 1000, new Rect(0, 44, 430, 922));
+
+            shell.ApplyViewport(new Rect(0, 24, 360, 596), 360, 640);
+            if (shell.AppliedSafeArea != new Rect(0, 24, 360, 596))
+            {
+                throw new System.InvalidOperationException("Safe-area application failed.");
+            }
+
+            shell.Preview(EpochShellPreviewSurface.CAPITAL);
+            if (shell.Destination != EpochShellDestination.CAPITAL)
+            {
+                throw new System.InvalidOperationException("Capital destination walkthrough failed.");
+            }
+
+            shell.Preview(EpochShellPreviewSurface.BATTLE);
+            if (shell.Destination != EpochShellDestination.BATTLE)
+            {
+                throw new System.InvalidOperationException("Battle host destination walkthrough failed.");
+            }
+
+            shell.Preview(EpochShellPreviewSurface.UPGRADE);
+            if (!shell.IsModalOpen || shell.IsSheetOpen)
+            {
+                throw new System.InvalidOperationException("Upgrade modal shell walkthrough failed.");
+            }
+
+            shell.DismissOverlay();
+            shell.Preview(EpochShellPreviewSurface.WORLD);
+            if (!shell.IsSheetOpen || shell.IsModalOpen)
+            {
+                throw new System.InvalidOperationException("World sheet shell walkthrough failed.");
+            }
+
+            shell.DismissOverlay();
+            shell.Preview(EpochShellPreviewSurface.RESULT);
+            if (shell.Destination != EpochShellDestination.RESULT)
+            {
+                throw new System.InvalidOperationException("Result destination walkthrough failed.");
+            }
+
+            shell.SmokeHostedBattleStart();
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 1 shell smoke passed. Approval captures: " + root);
+        }
+
+        private static void CaptureProfile(
+            EpochAppShell shell,
+            string root,
+            string profile,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            foreach (EpochShellPreviewSurface surface in System.Enum.GetValues(typeof(EpochShellPreviewSurface)))
+            {
+                string path = Path.Combine(root, profile + "-" + surface.ToString().ToLowerInvariant() + ".png");
+                shell.CaptureEditorPreview(path, width, height, safeArea, surface);
+            }
+        }
     }
 }
