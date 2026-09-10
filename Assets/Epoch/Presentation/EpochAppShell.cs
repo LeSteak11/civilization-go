@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -40,6 +40,7 @@ namespace Epoch.Presentation
         private EpochGameSession _game = null!;
         private GameObject? _matchHost;
         private bool _previewResult;
+        private bool _battleLayoutActive;
         private string? _selectedLandmarkId;
         private string _resultNotice = string.Empty;
 
@@ -82,7 +83,7 @@ namespace Epoch.Presentation
         {
             if (FindAnyObjectByType<EpochAppShell>() is null)
             {
-                new GameObject("EPOCH · UI Shell").AddComponent<EpochAppShell>();
+                new GameObject("EPOCH Â· UI Shell").AddComponent<EpochAppShell>();
             }
         }
 
@@ -138,20 +139,25 @@ namespace Epoch.Presentation
         public void ApplyViewport(Rect safeArea, int screenWidth, int screenHeight)
         {
             _safeArea.Apply(safeArea, screenWidth, screenHeight);
-            ResponsiveProfile = EpochUiTokens.ProfileFor(safeArea.width, safeArea.height);
-            _destinationLayer.offsetMin = new Vector2(0f, EpochUiTokens.StickyRegionHeight);
-            _destinationLayer.offsetMax = Vector2.zero;
+            ResponsiveProfile = EpochUiTokens.ProfileFor(screenWidth, screenHeight);
+            ApplyDestinationOffsets();
             _stickyLayer.anchorMin = Vector2.zero;
             _stickyLayer.anchorMax = new Vector2(1f, 0f);
             _stickyLayer.pivot = new Vector2(0.5f, 0f);
             _stickyLayer.offsetMin = new Vector2(EpochUiTokens.Gutter, EpochUiTokens.SpaceSmall);
             _stickyLayer.offsetMax = new Vector2(-EpochUiTokens.Gutter, EpochUiTokens.StickyRegionHeight);
+            if (_matchHost is not null)
+            {
+                EpochMatchController? controller = _matchHost.GetComponent<EpochMatchController>();
+                controller?.ApplyResponsiveProfile(ResponsiveProfile);
+            }
         }
 
         public void ShowCapital()
         {
             Destination = EpochShellDestination.CAPITAL;
             _previewResult = false;
+            ExitBattleLayoutMode();
             CloseOverlay();
             EpochUiFactory.Clear(_destinationLayer);
             EpochUiFactory.Clear(_stickyLayer);
@@ -166,10 +172,13 @@ namespace Epoch.Presentation
                 "Capital Title", "CAPITAL / " + state.CurrentCapitalId,
                 header, _font, EpochUiTokens.TextHeading, EpochUiTokens.Text,
                 TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0.05f, 0f), new Vector2(0.66f, 1f));
+            EpochUiFactory.SpriteImage(
+                "Gold Icon", header, EpochArtCatalog.GoldIcon,
+                new Vector2(0.66f, 0.22f), new Vector2(0.74f, 0.78f));
             EpochUiFactory.Text(
                 "Gold", "GOLD  " + state.Gold,
                 header, _font, EpochUiTokens.TextBody, EpochUiTokens.Accent,
-                TextAnchor.MiddleRight, FontStyle.Bold, new Vector2(0.66f, 0f), new Vector2(0.95f, 1f));
+                TextAnchor.MiddleRight, FontStyle.Bold, new Vector2(0.74f, 0f), new Vector2(0.95f, 1f));
 
             EpochUiFactory.Text(
                 "Progress", state.CompletedUpgradeCount + " / 25 UPGRADES",
@@ -192,24 +201,48 @@ namespace Epoch.Presentation
                         ? "READY · " + landmark.NextCost + " GOLD"
                         : "NEED " + landmark.NextCost + " GOLD";
                 string id = landmark.LandmarkId;
-                EpochUiFactory.Button(
-                    "Landmark " + (i + 1),
+                RectTransform row = EpochUiFactory.Panel(
+                    "Landmark " + (i + 1), _destinationLayer, EpochUiTokens.SurfaceRaised,
+                    new Vector2(0.04f, yMin), new Vector2(0.96f, yMax));
+                Button rowButton = row.gameObject.AddComponent<Button>();
+                ColorBlock colors = rowButton.colors;
+                colors.normalColor = EpochUiTokens.SurfaceRaised;
+                colors.highlightedColor = new Color(0.22f, 0.28f, 0.34f, 1f);
+                colors.pressedColor = new Color(0.12f, 0.16f, 0.20f, 1f);
+                colors.selectedColor = EpochUiTokens.SurfaceRaised;
+                colors.disabledColor = EpochUiTokens.Disabled;
+                rowButton.colors = colors;
+                rowButton.onClick.AddListener(() => OpenUpgrade(id));
+                EpochUiFactory.SpriteImage(
+                    "Landmark Stage Art", row, EpochArtCatalog.LandmarkStage(landmark.Stage),
+                    new Vector2(0.02f, 0.10f), new Vector2(0.16f, 0.90f));
+                EpochUiFactory.Text(
+                    "Label",
                     "LANDMARK " + (i + 1) + "     STAGE " + landmark.Stage + "/5     " + status,
-                    _destinationLayer, _font, EpochButtonStyle.SECONDARY,
-                    () => OpenUpgrade(id), new Vector2(0.04f, yMin), new Vector2(0.96f, yMax),
-                    true, landmark.Stage == 5);
+                    row, _font, EpochUiTokens.TextSmall, EpochUiTokens.Text,
+                    TextAnchor.MiddleLeft, FontStyle.Bold, new Vector2(0.18f, 0f), new Vector2(0.98f, 1f));
+                if (landmark.Stage == 5)
+                {
+                    Outline outline = row.gameObject.AddComponent<Outline>();
+                    outline.effectColor = EpochUiTokens.Player;
+                    outline.effectDistance = new Vector2(3f, -3f);
+                }
             }
 
+            float sceneTop = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.14f : 0.13f;
+            EpochUiFactory.SpriteImage(
+                "Capital Scene Art", _destinationLayer, EpochArtCatalog.CapitalScene,
+                new Vector2(0.08f, 0.02f), new Vector2(0.92f, sceneTop));
+            string capitalStatus = state.IsCapitalCompleted
+                ? (_game.WorldProgression().IsWorldComplete
+                    ? "WORLD COMPLETE"
+                    : "COMPLETED CAPITAL")
+                : "CAPITAL";
             EpochUiFactory.Text(
-                "Capital Placeholder",
-                state.IsCapitalCompleted
-                    ? (_game.WorldProgression().IsWorldComplete
-                        ? "WORLD COMPLETE · FUNCTIONAL PLACEHOLDER"
-                        : "COMPLETED CAPITAL · FUNCTIONAL PLACEHOLDER")
-                    : "WIREFRAME CAPITAL VIEW\nFINISHED CAPITAL AND LANDMARK ART DEFERRED",
+                "Capital Placeholder", capitalStatus,
                 _destinationLayer, _font, EpochUiTokens.TextSmall, EpochUiTokens.TextMuted,
-                TextAnchor.MiddleCenter, FontStyle.Normal, new Vector2(0.08f, 0.02f), new Vector2(0.92f, 0.13f));
-            StickyPrimary("START NEW BATTLE", StartBattle, state.CanStartNewBattle);
+                TextAnchor.LowerCenter, FontStyle.Bold, new Vector2(0.10f, 0.02f), new Vector2(0.90f, sceneTop));
+StickyPrimary("START NEW BATTLE", StartBattle, state.CanStartNewBattle);
         }
 
         public void OpenUpgrade(string landmarkId)
@@ -224,9 +257,10 @@ namespace Epoch.Presentation
             Button dismiss = dimmer.gameObject.AddComponent<Button>();
             dismiss.onClick.AddListener(DismissOverlay);
             RectTransform modal = EpochUiFactory.Panel(
-                "Upgrade Modal", _overlayLayer, EpochUiTokens.SurfaceRaised,
+                "Upgrade Modal", _overlayLayer, Color.white,
                 new Vector2(0.06f, ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.08f : 0.17f),
                 new Vector2(0.94f, ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.92f : 0.83f));
+            EpochArtCatalog.ApplySprite(modal.GetComponent<Image>(), EpochArtCatalog.UpgradeModalChrome, sliced: true);
             EpochUiFactory.Text(
                 "Modal Title", "LANDMARK UPGRADE",
                 modal, _font, EpochUiTokens.TextHeading, EpochUiTokens.Text,
@@ -239,9 +273,9 @@ namespace Epoch.Presentation
                 (state.IsComplete ? "\n\nLANDMARK COMPLETE" :
                     "\n\nNEXT STAGE  " + (state.Stage + 1) + " / 5" +
                     "\n\nCOST  " + state.NextCost + " GOLD" +
-                    "\n\nBALANCE  " + state.Gold + " → " +
+                    "\n\nBALANCE  " + state.Gold + " â†’ " +
                     (state.GoldAfterUpgrade.HasValue ? state.GoldAfterUpgrade.Value.ToString() : "INSUFFICIENT") + " GOLD") +
-                "\n\nWIREFRAME UPGRADE PREVIEW",
+                "",
                 body, _font, EpochUiTokens.TextBody, EpochUiTokens.Text,
                 TextAnchor.UpperCenter, FontStyle.Normal, Vector2.zero, Vector2.one);
             EpochUiFactory.Button(
@@ -249,7 +283,7 @@ namespace Epoch.Presentation
                 DismissOverlay, new Vector2(0.05f, 0.05f), new Vector2(0.39f, 0.19f));
             EpochUiFactory.Button(
                 "Confirm Upgrade",
-                state.IsComplete ? "COMPLETE" : "UPGRADE · " + state.NextCost + " GOLD",
+                state.IsComplete ? "COMPLETE" : "UPGRADE Â· " + state.NextCost + " GOLD",
                 modal, _font, EpochButtonStyle.PRIMARY,
                 ConfirmUpgrade, new Vector2(0.42f, 0.05f), new Vector2(0.95f, 0.19f), state.CanUpgrade);
         }
@@ -345,6 +379,7 @@ namespace Epoch.Presentation
         public void ShowBattlePlaceholder()
         {
             Destination = EpochShellDestination.BATTLE;
+            EnterBattleLayoutMode();
             CloseOverlay();
             EpochUiFactory.Clear(_destinationLayer);
             EpochUiFactory.Clear(_stickyLayer);
@@ -354,7 +389,7 @@ namespace Epoch.Presentation
                 TextAnchor.MiddleCenter, FontStyle.Bold, new Vector2(0.08f, 0.62f), new Vector2(0.92f, 0.76f));
             EpochUiFactory.Text(
                 "Battle Host Note",
-                "Existing deterministic 3 × 5 presentation mounts here.\nResponsive battle adaptation remains Group 5.\n\nGROWTH  ·  INSIGHT\nNO PERSISTENT GOLD CHROME",
+                "Deterministic 3 Ã— 5 battle mounts on this shell destination.\nSafe-area + SHORT/REFERENCE/TALL reflow.\n\nGROWTH  Â·  INSIGHT\nNO PERSISTENT GOLD CHROME\nNO STICKY PRIMARY MID-BATTLE",
                 _destinationLayer, _font, EpochUiTokens.TextBody, EpochUiTokens.TextMuted,
                 TextAnchor.MiddleCenter, FontStyle.Normal, new Vector2(0.08f, 0.28f), new Vector2(0.92f, 0.60f));
         }
@@ -428,12 +463,9 @@ namespace Epoch.Presentation
             _resultNotice = string.Empty;
             CurrentResultPresentation = null;
             IsReplayHosted = false;
-            ShowBattlePlaceholder();
-            _canvas.enabled = false;
-
-            _matchHost = new GameObject("EPOCH · Hosted Battle");
-            _matchHost.SetActive(false);
-            EpochMatchController controller = _matchHost.AddComponent<EpochMatchController>();
+            PrepareShellBattleHost("EPOCH Hosted Battle");
+            EpochMatchController controller = _matchHost!.AddComponent<EpochMatchController>();
+            controller.BindShellHost(_matchHost.GetComponent<RectTransform>(), ResponsiveProfile);
             controller.InitializeHosted(_game, OnHostedBattleComplete);
             _matchHost.SetActive(true);
 #if UNITY_EDITOR
@@ -446,14 +478,14 @@ namespace Epoch.Presentation
 
         private void OnHostedBattleComplete()
         {
-            _matchHost = null;
-            _canvas.enabled = true;
+            DestroyMatchHost();
             _resultNotice = string.Empty;
             ShowResultRewards();
         }
 
         private void RenderResult()
         {
+            ExitBattleLayoutMode();
             CloseOverlay();
             EpochUiFactory.Clear(_destinationLayer);
             EpochUiFactory.Clear(_stickyLayer);
@@ -462,19 +494,19 @@ namespace Epoch.Presentation
             string outcome = result is null
                 ? "RESULT & REWARDS"
                 : result.RewardStatus == BattleRewardStatus.PRACTICE_NO_GOLD
-                    ? "PRACTICE · " + result.Outcome
+                    ? "PRACTICE Â· " + result.Outcome
                     : result.Outcome.ToString();
-            string score = result is null ? "SCORE  —  —" : result.PlayerScore + "  —  " + result.SnapshotScore;
+            string score = result is null ? "SCORE  â€”  â€”" : result.PlayerScore + "  â€”  " + result.SnapshotScore;
             string reward = result is null
-                ? "WIREFRAME PREVIEW · NO REWARD APPLIED"
+                ? "WIREFRAME PREVIEW Â· NO REWARD APPLIED"
                 : result.RewardStatus == BattleRewardStatus.PRACTICE_NO_GOLD
-                    ? "PRACTICE — NO GOLD\nGOLD BALANCE  " + result.GoldBalance
+                    ? "PRACTICE â€” NO GOLD\nGOLD BALANCE  " + result.GoldBalance
                     : result.RewardStatus == BattleRewardStatus.ALREADY_CREDITED
-                        ? "ALREADY CREDITED · NO NEW GOLD\nORIGINAL REWARD  +" + result.RewardGold +
-                          " · GOLD BALANCE  " + result.GoldBalance
-                        : "+" + result.GoldCreditedNow + " GOLD · CREDITED AUTOMATICALLY\nGOLD BALANCE  " +
+                        ? "ALREADY CREDITED Â· NO NEW GOLD\nORIGINAL REWARD  +" + result.RewardGold +
+                          " Â· GOLD BALANCE  " + result.GoldBalance
+                        : "+" + result.GoldCreditedNow + " GOLD Â· CREDITED AUTOMATICALLY\nGOLD BALANCE  " +
                           result.GoldBalance;
-            string seed = result is null ? "SEED  —" : "SEED  " + result.Seed;
+            string seed = result is null ? "SEED  â€”" : "SEED  " + result.Seed;
 
             EpochUiFactory.Text(
                 "Outcome", outcome,
@@ -500,7 +532,7 @@ namespace Epoch.Presentation
 
             float buttonTop = ResponsiveProfile == EpochResponsiveProfile.SHORT ? 0.36f : 0.35f;
             EpochUiFactory.Button(
-                "Replay", "REPLAY · READ ONLY", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
+                "Replay", "REPLAY Â· READ ONLY", _destinationLayer, _font, EpochButtonStyle.SECONDARY,
                 BeginReadOnlyReplay, new Vector2(0.06f, buttonTop - 0.09f), new Vector2(0.47f, buttonTop),
                 result?.CanReplay == true);
             EpochUiFactory.Button(
@@ -508,7 +540,7 @@ namespace Epoch.Presentation
                 CopyResultSeed, new Vector2(0.53f, buttonTop - 0.09f), new Vector2(0.94f, buttonTop),
                 result?.CanCopySeed == true);
             EpochUiFactory.Button(
-                "Practice Restart", "RESTART SAME SEED · PRACTICE / NO GOLD",
+                "Practice Restart", "RESTART SAME SEED Â· PRACTICE / NO GOLD",
                 _destinationLayer, _font, EpochButtonStyle.QUIET,
                 RestartSameSeedPractice, new Vector2(0.06f, buttonTop - 0.21f), new Vector2(0.94f, buttonTop - 0.12f),
                 result?.CanRestartSameSeedPractice == true);
@@ -553,11 +585,10 @@ namespace Epoch.Presentation
             IReadOnlyList<Epoch.Application.Runs.PresentationTurn> frames = _game.ReplayTurns();
             Epoch.Application.Runs.PlayableMatchSession session = _game.Battle ??
                 throw new InvalidOperationException("The completed battle is unavailable for replay.");
-            _canvas.enabled = false;
             IsReplayHosted = true;
-            _matchHost = new GameObject("EPOCH · Read-Only Replay");
-            _matchHost.SetActive(false);
-            EpochMatchController controller = _matchHost.AddComponent<EpochMatchController>();
+            PrepareShellBattleHost("EPOCH Read-Only Replay");
+            EpochMatchController controller = _matchHost!.AddComponent<EpochMatchController>();
+            controller.BindShellHost(_matchHost.GetComponent<RectTransform>(), ResponsiveProfile);
             controller.InitializeHostedReplay(session, frames, OnHostedReplayComplete);
             _matchHost.SetActive(true);
 #if UNITY_EDITOR
@@ -583,11 +614,70 @@ namespace Epoch.Presentation
 
         private void OnHostedReplayComplete()
         {
-            _matchHost = null;
-            _canvas.enabled = true;
+            DestroyMatchHost();
             IsReplayHosted = false;
             _resultNotice = "READ-ONLY REPLAY COMPLETE";
             ShowResultRewards();
+        }
+
+        private void PrepareShellBattleHost(string hostName)
+        {
+            DestroyMatchHost();
+            Destination = EpochShellDestination.BATTLE;
+            EnterBattleLayoutMode();
+            CloseOverlay();
+            EpochUiFactory.Clear(_destinationLayer);
+            EpochUiFactory.Clear(_stickyLayer);
+            _canvas.enabled = true;
+            _matchHost = new GameObject(hostName);
+            _matchHost.transform.SetParent(_destinationLayer, false);
+            RectTransform hostRect = _matchHost.AddComponent<RectTransform>();
+            hostRect.anchorMin = Vector2.zero;
+            hostRect.anchorMax = Vector2.one;
+            hostRect.offsetMin = Vector2.zero;
+            hostRect.offsetMax = Vector2.zero;
+            _matchHost.SetActive(false);
+        }
+
+        private void EnterBattleLayoutMode()
+        {
+            _battleLayoutActive = true;
+            _stickyLayer.gameObject.SetActive(false);
+            ApplyDestinationOffsets();
+        }
+
+        private void ExitBattleLayoutMode()
+        {
+            _battleLayoutActive = false;
+            _stickyLayer.gameObject.SetActive(true);
+            ApplyDestinationOffsets();
+        }
+
+        private void ApplyDestinationOffsets()
+        {
+            _destinationLayer.offsetMin = _battleLayoutActive
+                ? Vector2.zero
+                : new Vector2(0f, EpochUiTokens.StickyRegionHeight);
+            _destinationLayer.offsetMax = Vector2.zero;
+        }
+
+        private void DestroyMatchHost()
+        {
+            if (_matchHost is null)
+            {
+                return;
+            }
+
+            if (UnityEngine.Application.isPlaying)
+            {
+                UnityEngine.Object.Destroy(_matchHost);
+            }
+            else
+            {
+                UnityEngine.Object.DestroyImmediate(_matchHost);
+            }
+
+            _matchHost = null;
         }
 
         private void ShowCapitalCompletion(LandmarkUpgradeReceipt receipt)
@@ -598,10 +688,14 @@ namespace Epoch.Presentation
             _overlayLayer.gameObject.SetActive(true);
             _ = EpochUiFactory.Panel(
                 "Overlay Dimmer", _overlayLayer, EpochUiTokens.Dimmer, Vector2.zero, Vector2.one);
-            RectTransform modal = EpochUiFactory.Panel(
-                "Capital Completion", _overlayLayer, EpochUiTokens.SurfaceRaised,
-                new Vector2(0.08f, 0.25f), new Vector2(0.92f, 0.75f));
             bool worldComplete = receipt.UnlockedCapitalId is null;
+            RectTransform modal = EpochUiFactory.Panel(
+                "Capital Completion", _overlayLayer, Color.white,
+                new Vector2(0.08f, 0.25f), new Vector2(0.92f, 0.75f));
+            EpochArtCatalog.ApplySprite(
+                modal.GetComponent<Image>(),
+                worldComplete ? EpochArtCatalog.WorldCompleteChrome : EpochArtCatalog.CapitalCompleteChrome,
+                sliced: true);
             string next = worldComplete
                 ? "WORLD COMPLETE\nALL CAPITALS REVISITABLE VIA WORLD"
                 : "UNLOCKED + AUTO-FOCUSED\n" + receipt.UnlockedCapitalId;
@@ -683,39 +777,89 @@ namespace Epoch.Presentation
 
         public void SmokeHostedBattleStart()
         {
+            EpochMatchController controller = SmokeHostedBattleMount();
+            if (!controller.IsReady || !controller.IsHostedInShell || !_canvas.enabled)
+            {
+                throw new InvalidOperationException(
+                    "The existing battle presentation did not mount through EpochGameSession. " +
+                    controller.StartupError);
+            }
+
+            DestroyMatchHost();
+            ExitBattleLayoutMode();
+            ShowCapital();
+        }
+
+        public EpochMatchController SmokeHostedBattleMount()
+        {
             StartBattle();
             if (_game.Battle is null || _matchHost is null)
             {
                 throw new InvalidOperationException("The hosted battle boundary did not initialize.");
             }
 
+            if (!_canvas.enabled)
+            {
+                throw new InvalidOperationException("Group 5 requires the shared shell canvas to remain enabled.");
+            }
+
+            if (_matchHost.transform.parent != _destinationLayer)
+            {
+                throw new InvalidOperationException("Hosted battle must mount under the shell destination layer.");
+            }
+
+            if (_stickyLayer.gameObject.activeSelf || _battleLayoutActive == false)
+            {
+                throw new InvalidOperationException("Mid-battle sticky primary must stay disabled.");
+            }
+
             EpochMatchController? controller = _matchHost.GetComponent<EpochMatchController>();
 #if UNITY_EDITOR
             controller?.InitializeForEditorSmoke();
 #endif
-            if (controller is null || !controller.IsReady)
+            if (controller is null || !controller.IsReady || !controller.IsHostedInShell)
             {
                 throw new InvalidOperationException(
                     "The existing battle presentation did not mount through EpochGameSession. " +
                     (controller?.StartupError ?? string.Empty));
             }
 
-            UnityEngine.Object.DestroyImmediate(_matchHost);
-            _matchHost = null;
-            _canvas.enabled = true;
+            return controller;
         }
 
         public void StopHostedPresentationForEditorSmoke()
         {
-            if (_matchHost is not null)
+            DestroyMatchHost();
+            IsReplayHosted = false;
+            ExitBattleLayoutMode();
+            _canvas.enabled = true;
+        }
+
+        public void CaptureHostedBattleForEditorSmoke(
+            string path,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            if (_matchHost is null)
             {
-                UnityEngine.Object.DestroyImmediate(_matchHost);
-                _matchHost = null;
+                throw new InvalidOperationException("Hosted battle capture requires an active shell-hosted battle.");
             }
 
-            _canvas.enabled = true;
-            IsReplayHosted = false;
+            ApplyViewport(safeArea, width, height);
+            EpochMatchController controller = _matchHost.GetComponent<EpochMatchController>() ??
+                throw new InvalidOperationException("Hosted battle controller is missing.");
+            controller.ApplyResponsiveProfile(ResponsiveProfile);
+            controller.CloseHelpForEditorCapture();
+            CaptureCurrentCanvas(path, width, height);
         }
+
+        public bool ShellCanvasEnabled => _canvas.enabled;
+
+        public bool BattleUsesShellDestination =>
+            _matchHost is not null && _matchHost.transform.parent == _destinationLayer;
+
+        public bool StickyVisible => _stickyLayer.gameObject.activeSelf;
 
         public void Preview(EpochShellPreviewSurface surface)
         {

@@ -1,3 +1,4 @@
+#nullable enable
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -496,6 +497,388 @@ namespace Epoch.Editor
 
             Object.DestroyImmediate(host);
             Debug.Log("EPOCH Group 4 world progression walkthrough passed. Approval captures: " + root);
+        }
+
+        public static void SmokeGroup5()
+        {
+            GameObject host = new GameObject("EPOCH Group 5 Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 5 shell failed to initialize: " + shell.StartupError);
+            }
+
+            string root = Path.GetFullPath("Logs/Group5Approval");
+            Directory.CreateDirectory(root);
+
+            EpochMatchController battle = shell.SmokeHostedBattleMount();
+            if (!shell.ShellCanvasEnabled || !shell.BattleUsesShellDestination || shell.StickyVisible ||
+                shell.Destination != EpochShellDestination.BATTLE || !battle.IsHostedInShell ||
+                battle.HasStickyPrimaryAction)
+            {
+                throw new System.InvalidOperationException(
+                    "Group 5 requires a single shell canvas host with no mid-battle sticky primary.");
+            }
+
+            if (!battle.HelpOverlayActive)
+            {
+                throw new System.InvalidOperationException("In-battle Help overlay must still open on mount.");
+            }
+
+            string player = battle.PlayerChromeText;
+            string snapshot = battle.SnapshotChromeText;
+            string turn = battle.HeaderTurnText;
+            string seed = battle.SeedChromeText;
+            if (!player.Contains("Growth") || !player.Contains("Insight") ||
+                !snapshot.Contains("Growth") || !snapshot.Contains("Insight") ||
+                player.IndexOf("Gold", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                snapshot.IndexOf("Gold", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                turn.IndexOf("Gold", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                throw new System.InvalidOperationException(
+                    "Battle chrome must expose Growth/Insight only and never persistent Gold labels.");
+            }
+
+            if (!turn.Contains("TURN") || !turn.Contains("DAWN") || turn.Contains(seed.Replace("SEED  ", string.Empty)) ||
+                !seed.StartsWith("SEED  ") || string.IsNullOrWhiteSpace(seed.Substring(6)))
+            {
+                throw new System.InvalidOperationException(
+                    "Seed must remain secondary chrome, not part of the primary TURN/Age header.");
+            }
+
+            int initialTurn = shell.Game.Battle!.State.Turn;
+            int initialPlayerScore = shell.Game.Battle.State.Player.Score;
+            int initialSnapshotScore = shell.Game.Battle.State.Snapshot.Score;
+            string initialSeed = shell.Game.Battle.State.Seed.MasterSeed.Text;
+            CaptureBattle(shell, root, "reference-battle", 390, 844, new Rect(0, 20, 390, 804));
+            if (shell.ResponsiveProfile != EpochResponsiveProfile.REFERENCE ||
+                battle.ResponsiveProfile != EpochResponsiveProfile.REFERENCE)
+            {
+                throw new System.InvalidOperationException("Reference battle capture did not apply REFERENCE profile.");
+            }
+
+            CaptureBattle(shell, root, "short-9x16-battle", 360, 640, new Rect(0, 24, 360, 596));
+            if (shell.ResponsiveProfile != EpochResponsiveProfile.SHORT ||
+                battle.ResponsiveProfile != EpochResponsiveProfile.SHORT)
+            {
+                throw new System.InvalidOperationException("Short battle capture did not apply SHORT profile.");
+            }
+
+            CaptureBattle(shell, root, "tall-battle", 430, 1000, new Rect(0, 44, 430, 922));
+            if (shell.ResponsiveProfile != EpochResponsiveProfile.TALL ||
+                battle.ResponsiveProfile != EpochResponsiveProfile.TALL)
+            {
+                throw new System.InvalidOperationException("Tall battle capture did not apply TALL profile.");
+            }
+
+            if (shell.Game.Battle.State.Turn != initialTurn ||
+                shell.Game.Battle.State.Player.Score != initialPlayerScore ||
+                shell.Game.Battle.State.Snapshot.Score != initialSnapshotScore ||
+                shell.Game.Battle.State.Seed.MasterSeed.Text != initialSeed ||
+                shell.Game.Battle.Turns.Count != 0)
+            {
+                throw new System.InvalidOperationException(
+                    "Responsive battle adaptation mutated the deterministic battle state.");
+            }
+
+            Color river = EpochBattleBoardPresentation.LaneSurface(LaneModifier.RIVER);
+            Color highland = EpochBattleBoardPresentation.LaneSurface(LaneModifier.HIGHLAND);
+            Color coast = EpochBattleBoardPresentation.LaneSurface(LaneModifier.COAST);
+            if (river == highland || highland == coast || river == coast)
+            {
+                throw new System.InvalidOperationException("Modular lane surfaces must remain distinct by modifier.");
+            }
+
+            shell.StopHostedPresentationForEditorSmoke();
+            CompleteActiveBattle(shell.Game, false);
+            shell.ShowResultRewards();
+            if (shell.Destination != EpochShellDestination.RESULT || shell.CurrentResultPresentation is null ||
+                shell.CurrentResultPresentation.RewardStatus != BattleRewardStatus.CREDITED)
+            {
+                throw new System.InvalidOperationException(
+                    "Battle completion must transition to Result & Rewards through EpochGameSession.");
+            }
+
+            CaptureResult(shell, root, "reference-result-after-battle", 390, 844, new Rect(0, 20, 390, 804));
+
+            int beforeReplayGold = shell.Game.Progression.State.Gold;
+            shell.BeginReadOnlyReplay();
+            if (!shell.IsReplayHosted || !shell.ShellCanvasEnabled || !shell.BattleUsesShellDestination ||
+                shell.StickyVisible || shell.Game.Progression.State.Gold != beforeReplayGold)
+            {
+                throw new System.InvalidOperationException(
+                    "Read-only replay must remount under the shared shell canvas without sticky or Gold mutation.");
+            }
+
+            CaptureBattle(shell, root, "reference-replay", 390, 844, new Rect(0, 20, 390, 804));
+            shell.StopHostedPresentationForEditorSmoke();
+            shell.ShowResultRewards();
+
+            shell.RestartSameSeedPractice();
+            if (shell.Game.Battle is null || shell.Game.Battle.IsComplete || !shell.ShellCanvasEnabled ||
+                !shell.BattleUsesShellDestination || shell.StickyVisible ||
+                shell.Game.Progression.State.BattleRuns[shell.Game.Progression.State.BattleRuns.Count - 1].Eligibility !=
+                BattleRewardEligibility.PRACTICE)
+            {
+                throw new System.InvalidOperationException(
+                    "Practice restart must host under the shared shell canvas with no sticky primary.");
+            }
+
+            CaptureBattle(shell, root, "reference-practice-battle", 390, 844, new Rect(0, 20, 390, 804));
+            shell.StopHostedPresentationForEditorSmoke();
+            CompleteActiveBattle(shell.Game, false);
+            shell.ShowResultRewards();
+            if (shell.CurrentResultPresentation is null ||
+                shell.CurrentResultPresentation.RewardStatus != BattleRewardStatus.PRACTICE_NO_GOLD)
+            {
+                throw new System.InvalidOperationException("Practice completion must reach Practice — no Gold result.");
+            }
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 5 battle shell adaptation passed. Approval captures: " + root);
+        }
+
+
+        public static void SmokeGroup6a()
+        {
+            EnsureGroup6aArtImports();
+
+            GameObject host = new GameObject("EPOCH Group 6a Smoke");
+            EpochAppShell shell = host.AddComponent<EpochAppShell>();
+            shell.InitializeForEditorSmoke();
+            if (!shell.IsReady)
+            {
+                throw new System.InvalidOperationException(
+                    "The Group 6a shell failed to initialize: " + shell.StartupError);
+            }
+
+            string root = Path.GetFullPath("Logs/Group6aApproval");
+            Directory.CreateDirectory(root);
+
+            shell.ShowCapital();
+            AssertNamedSprite(shell.transform, "Gold Icon", "icon_gold");
+            AssertNamedSprite(shell.transform, "Capital Scene Art", "capital_scene_placeholder");
+            AssertNamedSprite(shell.transform, "Landmark Stage Art", "landmark_stage_0");
+            shell.CaptureEditorPreview(
+                Path.Combine(root, "reference-capital.png"),
+                390, 844, new Rect(0, 20, 390, 804), EpochShellPreviewSurface.CAPITAL);
+
+            shell.OpenUpgrade(ProgressionCatalog.LandmarkIds[0]);
+            AssertNamedSprite(shell.transform, "Upgrade Modal", "upgrade_modal_chrome", requireSliced: true);
+            shell.CaptureEditorPreview(
+                Path.Combine(root, "reference-upgrade.png"),
+                390, 844, new Rect(0, 20, 390, 804), EpochShellPreviewSurface.UPGRADE);
+            shell.DismissOverlay();
+
+            AwardVictoryGold(shell.Game.Progression, 16);
+            shell.ShowCapital();
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            if (!shell.IsCapitalCompletionOpen || shell.LastUpgradeReceipt is null ||
+                !shell.LastUpgradeReceipt.CapitalCompleted)
+            {
+                throw new System.InvalidOperationException("Capital completion modal did not open for 6a art check.");
+            }
+
+            AssertNamedSprite(shell.transform, "Capital Completion", "capital_complete_modal", requireSliced: true);
+            shell.CaptureCapitalCompletionForEditorSmoke(
+                Path.Combine(root, "reference-capital-complete.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+            shell.DismissOverlay();
+
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            shell.DismissOverlay();
+            CompleteAllLandmarksOnCurrentCapital(shell);
+            if (!shell.IsCapitalCompletionOpen || shell.LastUpgradeReceipt is null ||
+                shell.LastUpgradeReceipt.UnlockedCapitalId is not null ||
+                !shell.Game.WorldProgression().IsWorldComplete)
+            {
+                throw new System.InvalidOperationException("World Complete modal path did not open for 6a art check.");
+            }
+
+            AssertNamedSprite(shell.transform, "Capital Completion", "world_complete_modal", requireSliced: true);
+            shell.CaptureCapitalCompletionForEditorSmoke(
+                Path.Combine(root, "reference-world-complete.png"),
+                390, 844, new Rect(0, 20, 390, 804));
+
+            Object.DestroyImmediate(host);
+            Debug.Log("EPOCH Group 6a art integration smoke passed. Approval captures: " + root);
+        }
+
+        private static void EnsureGroup6aArtImports()
+        {
+            string[] plain =
+            {
+                "Assets/EPOCH_Visuals/02_UI/Currency/icon_gold.png",
+                "Assets/EPOCH_Visuals/Capital/capital_scene_placeholder.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_0.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_1.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_2.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_3.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_4.png",
+                "Assets/EPOCH_Visuals/Capital/stage_language/landmark_stage_5.png",
+            };
+            foreach (string path in plain)
+            {
+                ConfigureSpriteImport(path, Vector4.zero);
+                SyncArtToResources(path);
+            }
+
+            Vector4 modalBorder = new Vector4(72f, 72f, 72f, 72f);
+            ConfigureSpriteImport("Assets/EPOCH_Visuals/02_UI/Modal/upgrade_modal_chrome.png", modalBorder);
+            ConfigureSpriteImport("Assets/EPOCH_Visuals/02_UI/Modal/capital_complete_modal.png", modalBorder);
+            ConfigureSpriteImport("Assets/EPOCH_Visuals/02_UI/Modal/world_complete_modal.png", modalBorder);
+            SyncArtToResources("Assets/EPOCH_Visuals/02_UI/Modal/upgrade_modal_chrome.png");
+            SyncArtToResources("Assets/EPOCH_Visuals/02_UI/Modal/capital_complete_modal.png");
+            SyncArtToResources("Assets/EPOCH_Visuals/02_UI/Modal/world_complete_modal.png");
+            AssetDatabase.Refresh();
+        }
+
+        private static void ConfigureSpriteImport(string assetPath, Vector4 border)
+        {
+            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            if (importer is null)
+            {
+                throw new System.InvalidOperationException("Missing Group 6a texture: " + assetPath);
+            }
+
+            bool changed = false;
+            if (importer.textureType != TextureImporterType.Sprite)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                changed = true;
+            }
+
+            if (importer.spriteImportMode != SpriteImportMode.Single)
+            {
+                importer.spriteImportMode = SpriteImportMode.Single;
+                changed = true;
+            }
+
+            if (importer.mipmapEnabled)
+            {
+                importer.mipmapEnabled = false;
+                changed = true;
+            }
+
+            if (!importer.alphaIsTransparency)
+            {
+                importer.alphaIsTransparency = true;
+                changed = true;
+            }
+
+            if (importer.npotScale != TextureImporterNPOTScale.None)
+            {
+                importer.npotScale = TextureImporterNPOTScale.None;
+                changed = true;
+            }
+
+            if (importer.spriteBorder != border)
+            {
+                importer.spriteBorder = border;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                importer.SaveAndReimport();
+            }
+        }
+
+        private static void SyncArtToResources(string assetPath)
+        {
+            Directory.CreateDirectory("Assets/Epoch/Resources/EpochArt");
+            string fileName = Path.GetFileName(assetPath);
+            string dest = Path.Combine("Assets/Epoch/Resources/EpochArt", fileName).Replace('\\', '/');
+            if (!File.Exists(dest) || new FileInfo(assetPath).Length != new FileInfo(dest).Length)
+            {
+                File.Copy(assetPath, dest, true);
+            }
+
+            TextureImporter importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
+            TextureImporter destImporter = AssetImporter.GetAtPath(dest) as TextureImporter;
+            if (importer is null)
+            {
+                return;
+            }
+
+            if (destImporter is null)
+            {
+                AssetDatabase.ImportAsset(dest);
+                destImporter = AssetImporter.GetAtPath(dest) as TextureImporter;
+            }
+
+            if (destImporter is null)
+            {
+                return;
+            }
+
+            destImporter.textureType = TextureImporterType.Sprite;
+            destImporter.spriteImportMode = SpriteImportMode.Single;
+            destImporter.mipmapEnabled = false;
+            destImporter.alphaIsTransparency = true;
+            destImporter.npotScale = TextureImporterNPOTScale.None;
+            destImporter.spriteBorder = importer.spriteBorder;
+            destImporter.SaveAndReimport();
+        }
+
+        private static void AssertNamedSprite(
+            Transform root,
+            string objectName,
+            string spriteNameContains,
+            bool requireSliced = false)
+        {
+            Transform target = FindDeep(root, objectName);
+            if (target is null)
+            {
+                throw new System.InvalidOperationException("Missing UI node for Group 6a art: " + objectName);
+            }
+
+            UnityEngine.UI.Image image = target.GetComponent<UnityEngine.UI.Image>();
+            if (image is null || image.sprite is null ||
+                image.sprite.name.IndexOf(spriteNameContains, System.StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                throw new System.InvalidOperationException(
+                    "Group 6a expected sprite '" + spriteNameContains + "' on " + objectName +
+                    " but found " + (image?.sprite != null ? image.sprite.name : "null") + ".");
+            }
+
+            if (requireSliced && image.type != UnityEngine.UI.Image.Type.Sliced)
+            {
+                throw new System.InvalidOperationException(objectName + " chrome must use sliced Image type.");
+            }
+        }
+
+        private static Transform FindDeep(Transform root, string objectName)
+        {
+            if (root.name == objectName)
+            {
+                return root;
+            }
+
+            for (int i = 0; i < root.childCount; i++)
+            {
+                Transform found = FindDeep(root.GetChild(i), objectName);
+                if (found is not null)
+                {
+                    return found;
+                }
+            }
+
+            return null;
+        }
+
+        private static void CaptureBattle(
+            EpochAppShell shell,
+            string root,
+            string name,
+            int width,
+            int height,
+            Rect safeArea)
+        {
+            shell.CaptureHostedBattleForEditorSmoke(
+                Path.Combine(root, name + ".png"), width, height, safeArea);
         }
 
         private static void CompleteAllLandmarksOnCurrentCapital(EpochAppShell shell)

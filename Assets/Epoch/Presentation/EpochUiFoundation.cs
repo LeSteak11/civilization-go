@@ -200,6 +200,21 @@ namespace Epoch.Presentation
             return button;
         }
 
+        public static Image SpriteImage(
+            string name,
+            Transform parent,
+            Sprite? sprite,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            bool sliced = false,
+            bool raycastTarget = false)
+        {
+            RectTransform panel = Panel(name, parent, Color.white, anchorMin, anchorMax);
+            Image image = panel.GetComponent<Image>();
+            image.raycastTarget = raycastTarget;
+            EpochArtCatalog.ApplySprite(image, sprite, sliced);
+            return image;
+        }
         public static ScrollRect ScrollArea(
             string name,
             Transform parent,

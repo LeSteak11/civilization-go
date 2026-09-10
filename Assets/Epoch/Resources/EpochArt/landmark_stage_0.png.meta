@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d24ac7a6c7efa54428dbad5d6a1521da
+guid: 8e66891ad3da1d04c887cd0bdafffc6d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2905107509435429636
-    second: landmark_stage_1_0
+      213: 8970716755873326328
+    second: landmark_stage_0_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,7 +100,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: landmark_stage_1_0
+      name: landmark_stage_0_0
       rect:
         serializedVersion: 2
         x: 0
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 403f73e43e3015820800000000000000
-      internalID: 2905107509435429636
+      spriteID: 8f4697e4c536e7c70800000000000000
+      internalID: 8970716755873326328
       vertices: []
       indices: 
       edges: []

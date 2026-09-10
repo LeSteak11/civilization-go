@@ -97,3 +97,14 @@ Write `Assets/EPOCH_Visuals/02_UI/Modal/world_complete_modal.png`. Same chrome D
 ## 2026-09-10 — World Complete written; G2 core art closed
 
 **Written:** `world_complete_modal.png`. Art Producer G2 core track closed (stage 0–5, Gold, upgrade/capital/world modals). Slot frame / progress meter / Battle CTA = UI kit/Dev unless PM asks. Capital scene placeholder optional last art beat if user continues.
+
+## 2026-09-10 — Capital scene placeholder PASS-WITH-NOTES
+
+Write `Assets/EPOCH_Visuals/Capital/capital_scene_placeholder.png`. Empty carved tabletop; optional soft backdrop later. G2 art track complete after write.
+
+**Written:** `capital_scene_placeholder.png`. G2 Art track fully closed.
+
+
+## 2026-09-10 — RR-SHELL-01 PASS
+Write `rr_shell_01.png`.
+

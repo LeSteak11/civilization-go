@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d24ac7a6c7efa54428dbad5d6a1521da
+guid: d3e0a9e4d707da4409e9e4997418b8dd
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2905107509435429636
-    second: landmark_stage_1_0
+      213: -7087676579399134706
+    second: world_complete_modal_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -52,7 +52,7 @@ TextureImporter:
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 100
-  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteBorder: {x: 72, y: 72, z: 72, w: 72}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: landmark_stage_1_0
+      name: world_complete_modal_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 362
-        height: 659
+        width: 900
+        height: 1594
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 403f73e43e3015820800000000000000
-      internalID: 2905107509435429636
+      spriteID: e021f0204b383ad90800000000000000
+      internalID: -7087676579399134706
       vertices: []
       indices: 
       edges: []

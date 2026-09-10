@@ -31,10 +31,6 @@ namespace Epoch.Presentation
         private static readonly Color Gold = Hex("D6AE58");
         private static readonly Color Player = Hex("45B8A6");
         private static readonly Color Snapshot = Hex("D86B62");
-        private static readonly Color River = Hex("294D63");
-        private static readonly Color Highland = Hex("574A3C");
-        private static readonly Color Coast = Hex("245D61");
-
         private Font _font = null!;
         private ValidatedContentSet _content = null!;
         private PlayableMatchSession _session = null!;
@@ -64,8 +60,21 @@ namespace Epoch.Presentation
         private PlayableMatchSession? _hostedReplaySession;
         private IReadOnlyList<PresentationTurn>? _hostedReplayFrames;
         private Action? _hostedReplayCompletion;
+        private RectTransform? _shellHost;
+        private RectTransform _root = null!;
+        private Text _seedText = null!;
+        private EpochResponsiveProfile _responsiveProfile = EpochResponsiveProfile.REFERENCE;
+        private bool _hostedInShell;
 
         public bool IsReady { get; private set; }
+        public bool IsHostedInShell => _hostedInShell;
+        public EpochResponsiveProfile ResponsiveProfile => _responsiveProfile;
+        public string HeaderTurnText => _turnText != null ? _turnText.text : string.Empty;
+        public string SeedChromeText => _seedText != null ? _seedText.text : string.Empty;
+        public string PlayerChromeText => _playerText != null ? _playerText.text : string.Empty;
+        public string SnapshotChromeText => _snapshotText != null ? _snapshotText.text : string.Empty;
+        public bool HasStickyPrimaryAction => false;
+        public bool HelpOverlayActive => _overlay != null && _overlay.gameObject.activeSelf;
 
         public string StartupError { get; private set; } = string.Empty;
 
@@ -99,6 +108,35 @@ namespace Epoch.Presentation
             }
         }
 
+        public void BindShellHost(RectTransform hostRoot, EpochResponsiveProfile profile)
+        {
+            if (IsReady)
+            {
+                throw new InvalidOperationException("The battle view is already initialized.");
+            }
+
+            _shellHost = hostRoot ?? throw new ArgumentNullException(nameof(hostRoot));
+            _responsiveProfile = profile;
+            _hostedInShell = true;
+        }
+
+        public void ApplyResponsiveProfile(EpochResponsiveProfile profile)
+        {
+            _responsiveProfile = profile;
+            if (_root is not null)
+            {
+                ApplyLayoutRegions();
+            }
+        }
+
+        public void CloseHelpForEditorCapture()
+        {
+            if (_overlay is not null)
+            {
+                _overlay.gameObject.SetActive(false);
+            }
+        }
+
         private void Awake()
         {
             if (IsReady)
@@ -106,7 +144,7 @@ namespace Epoch.Presentation
                 return;
             }
 
-            if (UnityEngine.Application.isPlaying)
+            if (UnityEngine.Application.isPlaying && !_hostedInShell)
             {
                 DontDestroyOnLoad(gameObject);
             }
@@ -114,8 +152,11 @@ namespace Epoch.Presentation
             Screen.orientation = ScreenOrientation.Portrait;
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            EnsureGameCamera();
-            EnsureEventSystem();
+            if (!_hostedInShell)
+            {
+                EnsureGameCamera();
+                EnsureEventSystem();
+            }
             BuildCanvas();
 
             try
@@ -249,25 +290,42 @@ namespace Epoch.Presentation
 
         private void BuildCanvas()
         {
-            GameObject canvasObject = new GameObject("Portrait Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-            canvasObject.transform.SetParent(transform, false);
-            _canvas = canvasObject.GetComponent<Canvas>();
-            _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(390, 844);
-            scaler.matchWidthOrHeight = 0.5f;
+            RectTransform root;
+            if (_shellHost is not null)
+            {
+                Canvas? shellCanvas = _shellHost.GetComponentInParent<Canvas>();
+                if (shellCanvas is null)
+                {
+                    throw new InvalidOperationException("Shell-hosted battle requires a parent Canvas.");
+                }
 
-            RectTransform root = canvasObject.GetComponent<RectTransform>();
-            MakePanel("Background", root, Vector2.zero, Vector2.one, Navy);
-            _header = MakePanel("Header", root, new Vector2(0.025f, 0.865f), new Vector2(0.975f, 0.985f), Charcoal);
-            _board = MakePanel("Board", root, new Vector2(0.025f, 0.315f), new Vector2(0.975f, 0.855f), Charcoal);
-            _hand = MakePanel("Shared offers", root, new Vector2(0.025f, 0.09f), new Vector2(0.975f, 0.305f), Navy);
-            _footer = MakePanel("Footer", root, new Vector2(0.025f, 0.015f), new Vector2(0.975f, 0.08f), Charcoal);
+                _canvas = shellCanvas;
+                root = MakePanel("Battle Root", _shellHost, Vector2.zero, Vector2.one, Navy);
+            }
+            else
+            {
+                GameObject canvasObject = new GameObject("Portrait Canvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+                canvasObject.transform.SetParent(transform, false);
+                _canvas = canvasObject.GetComponent<Canvas>();
+                _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+                CanvasScaler scaler = canvasObject.GetComponent<CanvasScaler>();
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+                scaler.referenceResolution = new Vector2(390, 844);
+                scaler.matchWidthOrHeight = 0.5f;
+                root = MakePanel("Background", canvasObject.GetComponent<RectTransform>(), Vector2.zero, Vector2.one, Navy);
+            }
+
+            _root = root;
+            _header = MakePanel("Header", root, Vector2.zero, Vector2.one, Charcoal);
+            _board = MakePanel("Board", root, Vector2.zero, Vector2.one, Charcoal);
+            _hand = MakePanel("Shared offers", root, Vector2.zero, Vector2.one, Navy);
+            _footer = MakePanel("Footer", root, Vector2.zero, Vector2.one, Charcoal);
+            ApplyLayoutRegions();
 
             _playerText = MakeText("PLAYER", _header, new Vector2(0.015f, 0.05f), new Vector2(0.34f, 0.95f), 15, Player, TextAnchor.MiddleLeft, FontStyle.Bold);
             _turnText = MakeText("TURN", _header, new Vector2(0.34f, 0.05f), new Vector2(0.66f, 0.95f), 16, Gold, TextAnchor.MiddleCenter, FontStyle.Bold);
             _snapshotText = MakeText("SNAPSHOT", _header, new Vector2(0.66f, 0.05f), new Vector2(0.985f, 0.95f), 15, Snapshot, TextAnchor.MiddleRight, FontStyle.Bold);
+            _seedText = MakeText("SEED", _footer, new Vector2(0.58f, 0.55f), new Vector2(0.99f, 0.95f), 9, new Color(Parchment.r, Parchment.g, Parchment.b, 0.55f), TextAnchor.MiddleRight, FontStyle.Normal);
 
             Button speed = MakeButton("Speed", _footer, new Vector2(0.01f, 0.08f), new Vector2(0.20f, 0.92f), Charcoal, ToggleSpeed);
             _speedText = speed.GetComponentInChildren<Text>();
@@ -276,11 +334,16 @@ namespace Epoch.Presentation
                 .GetComponentInChildren<Text>().text = "SKIP";
             MakeButton("Help", _footer, new Vector2(0.41f, 0.08f), new Vector2(0.57f, 0.92f), Charcoal, ShowHelp)
                 .GetComponentInChildren<Text>().text = "HELP";
-            _statusText = MakeText("Pick 1 card", _footer, new Vector2(0.58f, 0.08f), new Vector2(0.99f, 0.92f), 11, Parchment, TextAnchor.MiddleRight, FontStyle.Normal);
+            _statusText = MakeText("Pick 1 card", _footer, new Vector2(0.58f, 0.05f), new Vector2(0.99f, 0.52f), 11, Parchment, TextAnchor.MiddleRight, FontStyle.Normal);
 
             _overlay = MakePanel("Overlay", root, Vector2.zero, Vector2.one, new Color(0.02f, 0.035f, 0.055f, 0.95f));
             _overlay.GetComponent<Image>().raycastTarget = true;
             _overlay.gameObject.SetActive(false);
+        }
+
+        private void ApplyLayoutRegions()
+        {
+            EpochBattleBoardPresentation.ApplyRegions(_header, _board, _hand, _footer, _responsiveProfile);
         }
 
         private void RenderChoice()
@@ -305,9 +368,10 @@ namespace Epoch.Presentation
 
         private void RenderState(RunState state)
         {
-            _turnText.text = "TURN " + state.Turn + "/24\n< " + AgeName(state.Age) + " >\n" + state.Seed.MasterSeed.Text;
+            _turnText.text = "TURN " + state.Turn + "/24\n< " + AgeName(state.Age) + " >";
             _playerText.text = "PLAYER\nSCORE  " + state.Player.Score + "\nGrowth " + state.Player.Growth + "  ·  Insight " + state.Player.Insight;
             _snapshotText.text = "SNAPSHOT\nSCORE  " + state.Snapshot.Score + "\nGrowth " + state.Snapshot.Growth + "  ·  Insight " + state.Snapshot.Insight;
+            _seedText.text = "SEED  " + state.Seed.MasterSeed.Text;
             RenderBoard(state);
         }
 
@@ -321,8 +385,7 @@ namespace Epoch.Presentation
                 LaneState lane = state.Lanes[laneIndex];
                 float left = 0.012f + (laneIndex * 0.33f);
                 float right = left + 0.316f;
-                Color tint = lane.Modifier == LaneModifier.RIVER ? River
-                    : lane.Modifier == LaneModifier.HIGHLAND ? Highland : Coast;
+                Color tint = EpochBattleBoardPresentation.LaneSurface(lane.Modifier);
                 RectTransform lanePanel = MakePanel("Lane " + lane.Id, _board,
                     new Vector2(left, 0.02f), new Vector2(right, 0.98f), tint);
                 Outline outline = lanePanel.gameObject.AddComponent<Outline>();
@@ -332,7 +395,7 @@ namespace Epoch.Presentation
 
                 int playerStructures = CountStructures(state.Player, lane.Id);
                 int snapshotStructures = CountStructures(state.Snapshot, lane.Id);
-                MakeText(lane.Modifier + "\n" + LaneRule(lane.Modifier), lanePanel, new Vector2(0, 0.90f), new Vector2(1, 1), 9, Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
+                MakeText(lane.Modifier + "\n" + EpochBattleBoardPresentation.LaneRule(lane.Modifier), lanePanel, new Vector2(0, 0.90f), new Vector2(1, 1), 9, Parchment, TextAnchor.MiddleCenter, FontStyle.Bold);
                 MakeText("ENEMY BUILDS " + snapshotStructures, lanePanel, new Vector2(0.03f, 0.83f), new Vector2(0.97f, 0.90f), 8, Snapshot, TextAnchor.MiddleCenter, FontStyle.Normal);
                 MakeText("YOUR BUILDS " + playerStructures, lanePanel, new Vector2(0.03f, 0.01f), new Vector2(0.97f, 0.08f), 8, Player, TextAnchor.MiddleCenter, FontStyle.Normal);
 
@@ -873,13 +936,6 @@ namespace Epoch.Presentation
             : unit.UnitClass == UnitClass.SPEAR ? "SP" + (unit.HasReach ? " R" : string.Empty)
             : "HO" + (unit.HasReach ? " R" : string.Empty);
 
-        private static string LaneRule(LaneModifier modifier) => modifier switch
-        {
-            LaneModifier.RIVER => "Growth builds +1",
-            LaneModifier.HIGHLAND => "Center defender +3",
-            _ => "Units move 2 tiles",
-        };
-
         private static string IllegalLabel(ValidationError error) => error switch
         {
             ValidationError.ERR_UNAFFORDABLE => "NOT ENOUGH RESOURCES",
@@ -990,6 +1046,101 @@ namespace Epoch.Presentation
             {
                 Destroy(parent.GetChild(i).gameObject);
             }
+        }
+
+        private static Color Hex(string value)
+        {
+            ColorUtility.TryParseHtmlString("#" + value, out Color color);
+            return color;
+        }
+    }
+
+    /// <summary>
+    /// Modular board/lane presentation hooks so responsive reflow can retarget surfaces
+    /// without rewriting combat projection.
+    /// </summary>
+    public static class EpochBattleBoardPresentation
+    {
+        private static readonly Color River = Hex("294D63");
+        private static readonly Color Highland = Hex("574A3C");
+        private static readonly Color Coast = Hex("245D61");
+
+        public static Color LaneSurface(LaneModifier modifier) => modifier switch
+        {
+            LaneModifier.RIVER => River,
+            LaneModifier.HIGHLAND => Highland,
+            _ => Coast,
+        };
+
+        public static string LaneRule(LaneModifier modifier) => modifier switch
+        {
+            LaneModifier.RIVER => "Growth builds +1",
+            LaneModifier.HIGHLAND => "Center defender +3",
+            _ => "Units move 2 tiles",
+        };
+
+        public static void ApplyRegions(
+            RectTransform header,
+            RectTransform board,
+            RectTransform hand,
+            RectTransform footer,
+            EpochResponsiveProfile profile)
+        {
+            Vector2 headerMin;
+            Vector2 headerMax;
+            Vector2 boardMin;
+            Vector2 boardMax;
+            Vector2 handMin;
+            Vector2 handMax;
+            Vector2 footerMin;
+            Vector2 footerMax;
+
+            if (profile == EpochResponsiveProfile.SHORT)
+            {
+                headerMin = new Vector2(0.025f, 0.885f);
+                headerMax = new Vector2(0.975f, 0.985f);
+                boardMin = new Vector2(0.025f, 0.345f);
+                boardMax = new Vector2(0.975f, 0.875f);
+                handMin = new Vector2(0.025f, 0.105f);
+                handMax = new Vector2(0.975f, 0.335f);
+                footerMin = new Vector2(0.025f, 0.015f);
+                footerMax = new Vector2(0.975f, 0.095f);
+            }
+            else if (profile == EpochResponsiveProfile.TALL)
+            {
+                headerMin = new Vector2(0.04f, 0.875f);
+                headerMax = new Vector2(0.96f, 0.97f);
+                boardMin = new Vector2(0.04f, 0.275f);
+                boardMax = new Vector2(0.96f, 0.86f);
+                handMin = new Vector2(0.04f, 0.09f);
+                handMax = new Vector2(0.96f, 0.26f);
+                footerMin = new Vector2(0.04f, 0.02f);
+                footerMax = new Vector2(0.96f, 0.08f);
+            }
+            else
+            {
+                headerMin = new Vector2(0.025f, 0.865f);
+                headerMax = new Vector2(0.975f, 0.985f);
+                boardMin = new Vector2(0.025f, 0.315f);
+                boardMax = new Vector2(0.975f, 0.855f);
+                handMin = new Vector2(0.025f, 0.09f);
+                handMax = new Vector2(0.975f, 0.305f);
+                footerMin = new Vector2(0.025f, 0.015f);
+                footerMax = new Vector2(0.975f, 0.08f);
+            }
+
+            Stretch(header, headerMin, headerMax);
+            Stretch(board, boardMin, boardMax);
+            Stretch(hand, handMin, handMax);
+            Stretch(footer, footerMin, footerMax);
+        }
+
+        private static void Stretch(RectTransform rect, Vector2 min, Vector2 max)
+        {
+            rect.anchorMin = min;
+            rect.anchorMax = max;
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
         }
 
         private static Color Hex(string value)

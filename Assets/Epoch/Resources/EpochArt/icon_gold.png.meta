@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: d24ac7a6c7efa54428dbad5d6a1521da
+guid: 070df4eb7cf432944abea8545adcb17c
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2905107509435429636
-    second: landmark_stage_1_0
+      213: 2312241255967906428
+    second: icon_gold_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: landmark_stage_1_0
+      name: icon_gold_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 362
-        height: 659
+        width: 1162
+        height: 1162
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 403f73e43e3015820800000000000000
-      internalID: 2905107509435429636
+      spriteID: c7a58f8eb2bb61020800000000000000
+      internalID: 2312241255967906428
       vertices: []
       indices: 
       edges: []
